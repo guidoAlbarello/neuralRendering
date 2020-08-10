@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Neural rendering</title>
+
+    <!-- Third party imports. -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type="text/javascript" src="thirdParty/glMatrix/dist/gl-matrix-min.js"></script>
+    <script type="text/javascript" src="thirdParty/dat.gui.min.js"></script>
+    <script type="text/javascript" src="thirdParty/three.min.js"></script>
+
+
+    <!-- Rendering imports. -->
+    <script type="text/javascript" src="scenes/Scene.js"></script>
+    <script type="text/javascript" src="scenes/RaymarcherScene.js"></script>
+
+    <script type="text/javascript" src="materials/Material.js"></script>
+    <script type="text/javascript" src="materials/RaymarcherMaterial.js"></script>
+
+    <!-- This import needs to go last. (Refactor on imports pending) -->
+    <script type="text/javascript" src="GraphicApplication;.js"></script>
+</head>
+
+<body>
+    <script type="text/javascript">
+        $(() => {
+            let canvas = $("#my-canvas")[0];
+            var app = new GraphicApplication();
+            app.init(canvas);
+        });
+
+    </script>
+        <canvas id="my-canvas" width="1600" height="900">
+            Your browser does not support the HTML5 canvas element.
+        </canvas>
+</body>
+
+</html>
