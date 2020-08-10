@@ -8,3 +8,8 @@
     * **materials**: Different types of materials are stored here.
       **shaders**: Glsl shaders are stored here.
   * **training**: Here is stored the code for training a neural network based on a dataset. Mainly code in python.
+
+
+## Instructions to run
+
+Run *node server.js* to boot up the rendering server.
