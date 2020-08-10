@@ -10,17 +10,17 @@ class RaymarcherScene extends Scene {
     async build() {
         this.camera = new THREE.OrthographicCamera(
             -1, // left
-             1, // right
-             1, // top
+            1, // right
+            1, // top
             -1, // bottom
             -1, // near,
-             1, // far
-          );
-          this.scene = new THREE.Scene();
-          let plane = new THREE.PlaneBufferGeometry(2, 2);
-          this.raymarcher = await new RaymarcherMaterial().load(this.RAYMARCHER_SHADER);
+            1, // far
+        );
+        this.scene = new THREE.Scene();
+        let plane = new THREE.PlaneBufferGeometry(2, 2);
+        this.raymarcher = await new RaymarcherMaterial().load(this.RAYMARCHER_SHADER);
 
-          this.scene.add(new THREE.Mesh(plane, this.raymarcher.getMaterial()));
+        this.scene.add(new THREE.Mesh(plane, this.raymarcher.getMaterial()));
     }
 
     update(time, canvas) {
