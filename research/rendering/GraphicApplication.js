@@ -9,7 +9,6 @@ class GraphicApplication {
     this.renderer.autoClearColor = false;
 
     this.scene = new RaymarcherScene();
-
     await this.scene.build();
     this.update();
   }
@@ -21,6 +20,7 @@ class GraphicApplication {
     this.scene.update(time, this.renderer.domElement);
     this.renderer.render(this.scene.getScene(), this.scene.getCamera());
 
+    window.scene = this.scene.getScene();
     requestAnimationFrame(step => this.update(step));
   }
 

@@ -52,7 +52,7 @@ def toTestShader(squashFunction, weights, bias, filename):
         input = output  
     netFunction = input[0]
 
-    evaluateNet = ('float evaluateNet(vec3 {0}) {{\n\t return {1};\n}}').format(argName, netFunction)
+    evaluateNet = ('float evaluateNet(vec2 {0}) {{\n\t return {1};\n}}').format(argName, netFunction)
     relu = ('float relu(float value) {\n\t return max(0.0, value);\n}')
     shaderCode = ('{0}\n\n{1}').format(relu, evaluateNet)
     with open(filename, 'w') as f:
