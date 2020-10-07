@@ -1,0 +1,7 @@
+version: '3.5'
+services:
+  to_sdf:
+    container_name: to_sdf
+    image: "python-numpy:latest"
+    entrypoint: python3 toSdf.py
+    restart: on-failure
