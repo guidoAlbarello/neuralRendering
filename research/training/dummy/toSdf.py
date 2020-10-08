@@ -54,7 +54,8 @@ def getDistance2(data, row, col, distance = 0):
     return getDistance2(data, row, col, distance+1)
 
 
-################ WITHOUT THREADS #######################
+
+################################### WITHOUT THREADS #######################################
 
 def imageToSdf(imageFileName):
     # print("COMENZO")
@@ -137,15 +138,18 @@ def imageToSdf2(imageFileName, internalValue):
 #imageToSdf2("./densityMap.png", internalValue)
 
 
-################ THREADS ####################
+
+#################################### THREADS ##############################################
+
+def compare(color, internalColor, isInternal):
+    return (color != internalColor).any() if isInternal else (color == internalColor).all()
 
 def dataToSdf(data, internalValue, coordinates, distances, values, heightInit, heightEnd):
     height = len(data)
     width = len(data[0])
-
     for row in range(heightInit, heightEnd):
         for col in range(width):
-            print("row: {}, col: {}, MaxRow:{}, MaxCol:{}".format(row,col, height, width))
+            print("row: {}, col: {}, MaxRow:{}, MaxCol:{}".format(row, col, height, width))
             coordinates.append([col/float(width), row/float(height)])
             values.append(-1 if data[row][col][0] != 0 else 0)
 
@@ -155,19 +159,24 @@ def dataToSdf(data, internalValue, coordinates, distances, values, heightInit, h
             y = row
             x = col
             pixelValue = data[row][col]
+
+            isInternal = False
+            if (pixelValue == internalValue).all():
+                isInternal = True
+
             for i in range(max(height, width)**2):
                 if (-height/2 < y <= height/2) and (-width/2 < x <= width/2):
-                    if (data[y][x] != pixelValue).any():
+                    if compare(data[y][x], internalValue, isInternal):
                         break
-
                 y_row = y-row
                 x_col = x-col
                 if y_row == x_col or (y_row < 0 and y_row == -x_col) or (y_row > 0 and y_row == 1-x_col):
                     drow, dcol = -dcol, drow
                 x, y = x+dcol, y+drow
+
             distance = max(abs(y-row), abs(x-col))
             if (pixelValue == internalValue).all():
-                distance = -distance
+                distance = -(distance-1)
             #print(distance)
             distances.append(distance)
 
@@ -199,7 +208,7 @@ def imageToSdfThreads(imageFileName, internalValue, Nthreads):
     coordinates = list(itertools.chain.from_iterable(coordinates))
     distances = list(itertools.chain.from_iterable(distances))
     values = list(itertools.chain.from_iterable(values))
-    print("FIN")
+    print("############ FIN #############")
     print("coordinates: {}".format(coordinates))
     print("distances: {}".format(distances))
     print("values: {}".format(values))
