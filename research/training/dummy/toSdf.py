@@ -212,6 +212,22 @@ def imageToSdfThreads(imageFileName, internalValue, Nthreads):
     print("coordinates: {}".format(coordinates))
     print("distances: {}".format(distances))
     print("values: {}".format(values))
+
+    coordinatesFile =open("coordinates.txt", "a")
+    coordinatesFile.write(coordinates)
+    coordinatesFile.write('\n')
+    coordinatesFile.close()
+
+    distancesFile =open("distances.txt", "a")
+    distancesFile.write(distances)
+    distancesFile.write('\n')
+    distancesFile.close()
+
+    valuesFile =open("values.txt", "a")
+    valuesFile.write(values)
+    valuesFile.write('\n')
+    valuesFile.close()
+
     return coordinates, distances, values
 
 internalValue = numpy.array([255, 255, 255, 255], numpy.uint8)
