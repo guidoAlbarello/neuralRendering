@@ -2,7 +2,9 @@ from PIL import Image
 from numpy import asarray
 import numpy
 import itertools
-import threading
+# import threading
+from multiprocessing import Process, Manager
+
 
 def loadImage(imageFileName):
     image = Image.open(imageFileName)
@@ -186,19 +188,28 @@ def imageToSdfThreads(imageFileName, internalValue, Nthreads):
     print("empezo")
     image = Image.open(imageFileName)
     data = asarray(image)
-    coordinates = [[]]*Nthreads
-    distances = [[]]*Nthreads
-    values = [[]]*Nthreads
 
     Nheight = int(len(data)/Nthreads)
-
     threads = list()
+
+    manager = Manager()
+    coordinates = manager.list()
+    distances = manager.list()
+    values = manager.list()
+
     for i in range(Nthreads):
+        coordinatesI = manager.list()
+        coordinates.append(coordinatesI)
+        distancesI = manager.list()
+        distances.append(distancesI)
+        valuesI = manager.list()
+        values.append(valuesI)
+
         heightInit = Nheight*i
         heightEnd = Nheight*(i+1)
         if i == Nthreads-1:
             heightEnd += Nheight%Nthreads
-        t = threading.Thread(target=dataToSdf, args=(data, internalValue, coordinates[i], distances[i], values[i], heightInit, heightEnd,))
+        t = Process(target=dataToSdf, args=(data, internalValue, coordinates[i], distances[i], values[i], heightInit, heightEnd,))
         threads.append(t)
         t.start()
 
@@ -227,5 +238,9 @@ def imageToSdfThreads(imageFileName, internalValue, Nthreads):
 
     return coordinates, distances, values
 
-internalValue = numpy.array([255, 255, 255, 255], numpy.uint8)
-imageToSdfThreads("./densityMap.png", internalValue, 4)
+
+if __name__ == "__main__":
+    internalValue = numpy.array([255, 255, 255, 255], numpy.uint8)
+    numberOfThreads = 4
+    imageFileName = "./densityMap.png"
+    imageToSdfThreads(imageFileName, internalValue, numberOfThreads)
