@@ -146,12 +146,16 @@ def imageToSdf2(imageFileName, internalValue):
 def compare(color, internalColor, isInternal):
     return (color != internalColor).any() if isInternal else (color == internalColor).all()
 
-def dataToSdf(data, internalValue, coordinates, distances, values, heightInit, heightEnd):
+def dataToSdf(id, data, internalValue, coordinates, distances, values, heightInit, heightEnd):
     height = len(data)
     width = len(data[0])
+    processedPixels = 0
+    totalPixels = width * (heightEnd - heightInit)
+    print("Row range: {} - {}".format(heightInit, heightEnd))
     for row in range(heightInit, heightEnd):
         for col in range(width):
-            print("row: {}, col: {}, MaxRow:{}, MaxCol:{}".format(row, col, height, width))
+            print("Process {} => Completed: {}%, ProcessedPixels: {}/{}.".format(id, round(processedPixels/totalPixels*100, 2), processedPixels, totalPixels))
+            processedPixels += 1
             coordinates.append([col/float(width), row/float(height)])
             values.append(-1 if data[row][col][0] != 0 else 0)
 
@@ -209,7 +213,7 @@ def imageToSdfThreads(imageFileName, internalValue, Nthreads):
         heightEnd = Nheight*(i+1)
         if i == Nthreads-1:
             heightEnd += Nheight%Nthreads
-        t = Process(target=dataToSdf, args=(data, internalValue, coordinates[i], distances[i], values[i], heightInit, heightEnd,))
+        t = Process(target=dataToSdf, args=(i, data, internalValue, coordinates[i], distances[i], values[i], heightInit, heightEnd,))
         threads.append(t)
         t.start()
 
@@ -241,6 +245,6 @@ def imageToSdfThreads(imageFileName, internalValue, Nthreads):
 
 if __name__ == "__main__":
     internalValue = numpy.array([255, 255, 255, 255], numpy.uint8)
-    numberOfThreads = 4
+    numberOfThreads = 11
     imageFileName = "./densityMap.png"
     imageToSdfThreads(imageFileName, internalValue, numberOfThreads)
