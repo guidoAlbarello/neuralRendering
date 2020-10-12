@@ -2,7 +2,6 @@ from PIL import Image
 from numpy import asarray
 import numpy
 import itertools
-# import threading
 from multiprocessing import Process, Manager
 
 
@@ -184,20 +183,20 @@ def dataToSdf(data, internalValue, coordinates, distances, values, heightInit, h
 
     print(distances)
 
-def imageToSdfThreads(imageFileName, internalValue, Nthreads):
+def imageToSdfProcess(imageFileName, internalValue, NProcesses):
     print("empezo")
     image = Image.open(imageFileName)
     data = asarray(image)
 
-    Nheight = int(len(data)/Nthreads)
-    threads = list()
+    Nheight = int(len(data)/NProcesses)
+    processes = list()
 
     manager = Manager()
     coordinates = manager.list()
     distances = manager.list()
     values = manager.list()
 
-    for i in range(Nthreads):
+    for i in range(NProcesses):
         coordinatesI = manager.list()
         coordinates.append(coordinatesI)
         distancesI = manager.list()
@@ -207,14 +206,14 @@ def imageToSdfThreads(imageFileName, internalValue, Nthreads):
 
         heightInit = Nheight*i
         heightEnd = Nheight*(i+1)
-        if i == Nthreads-1:
-            heightEnd += Nheight%Nthreads
-        t = Process(target=dataToSdf, args=(data, internalValue, coordinates[i], distances[i], values[i], heightInit, heightEnd,))
-        threads.append(t)
-        t.start()
+        if i == NProcesses-1:
+            heightEnd += Nheight%NProcesses
+        p = Process(target=dataToSdf, args=(data, internalValue, coordinates[i], distances[i], values[i], heightInit, heightEnd,))
+        processes.append(p)
+        p.start()
 
-    for t in threads:
-        t.join()
+    for p in processes:
+        p.join()
 
     coordinates = list(itertools.chain.from_iterable(coordinates))
     distances = list(itertools.chain.from_iterable(distances))
@@ -241,6 +240,6 @@ def imageToSdfThreads(imageFileName, internalValue, Nthreads):
 
 if __name__ == "__main__":
     internalValue = numpy.array([255, 255, 255, 255], numpy.uint8)
-    numberOfThreads = 4
+    numberOfProcesses = 4
     imageFileName = "./densityMap.png"
-    imageToSdfThreads(imageFileName, internalValue, numberOfThreads)
+    imageToSdfProcess(imageFileName, internalValue, numberOfProcesses)
