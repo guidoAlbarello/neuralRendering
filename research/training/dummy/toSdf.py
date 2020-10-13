@@ -10,12 +10,13 @@ def makeQuad(rows, cols):
     for row in range(rows):
         rowData = []
         for col in range(cols):
-            if row >= 50 and row < 90 and col > 30 and col < 60:
+            if 50 <= row < 90 and 30 < col < 60:
                 rowData.append(numpy.array([0], numpy.uint8))
             else:
                 rowData.append(numpy.array([1], numpy.uint8))
         data.append(rowData)
     return data
+
 
 def makeCircle(rows, cols):
     data = []
@@ -31,6 +32,7 @@ def makeCircle(rows, cols):
                 rowData.append(numpy.array([0], numpy.uint8))
         data.append(rowData)
     return data
+
 
 def loadImage(imageFileName):
     image = Image.open(imageFileName)
@@ -49,6 +51,7 @@ def loadImage(imageFileName):
             valores.append(1 if data[row][col][0] != 0 else 0)
     return coordenadas, valores, data
 
+
 def getIndexes(distance):
     values = list(range(-distance,distance+1))
     result = list(map(lambda v: (v,distance), values))
@@ -56,6 +59,7 @@ def getIndexes(distance):
     result += list(map(lambda v: (v,-distance), values))
     result += list(map(lambda v: (distance, v), values))
     return set(result)
+
 
 def getDistance(data, row, col, distance = 0):
     '''Get distance to pixel without value 0'''
@@ -68,6 +72,7 @@ def getDistance(data, row, col, distance = 0):
             if data[row+index[0]][col+index[1]][0] != 0:
                 return distance
     return getDistance(row, col, distance+1)
+
 
 def getDistance2(data, row, col, distance = 0):
     '''Get distance to the first pixel with different value'''
@@ -86,7 +91,6 @@ def getDistance2(data, row, col, distance = 0):
 ################################### WITHOUT THREADS #######################################
 
 def imageToSdf(imageFileName):
-    # print("COMENZO")
     image = Image.open(imageFileName)
     data = asarray(image)
 
@@ -115,10 +119,9 @@ def imageToSdf(imageFileName):
                 distance += 1
             distances.append(distance)
 
-            #distances.append(getDistance(data, row, col))
-
-    print(distances)
+    # print(distances)
     return coordinates, distances, values
+
 
 def imageToSdf2(imageFileName, internalValue):
     print("empezo")
@@ -159,7 +162,7 @@ def imageToSdf2(imageFileName, internalValue):
             #print(distance)
             distances.append(distance)
 
-    print(distances)
+    # print(distances)
     return coordinates, distances, values
 
 #internalValue = numpy.array([255, 255, 255, 255], numpy.uint8)
@@ -213,7 +216,6 @@ def dataToSdf(data, internalValue, coordinates, distances, values, heightInit, h
                 distance = -(distance-1)
             #print(distance)
             distances.append(distance)
-
     # print(distances)
 
 
