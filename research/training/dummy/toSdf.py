@@ -5,6 +5,18 @@ import itertools
 from multiprocessing import Process, Manager
 
 
+def makeQuad(rows, cols):
+    data = []
+    for row in range(rows):
+        rowData = []
+        for col in range(cols):
+            if row >= 50 and row < 90 and col > 30 and col < 60:
+                rowData.append(numpy.array([0], numpy.uint8))
+            else:
+                rowData.append(numpy.array([1], numpy.uint8))
+        data.append(rowData)
+    return data
+
 def makeCircle(rows, cols):
     data = []
     for row in range(rows):
