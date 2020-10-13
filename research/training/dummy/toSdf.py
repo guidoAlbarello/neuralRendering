@@ -5,6 +5,21 @@ import itertools
 from multiprocessing import Process, Manager
 
 
+def makeCircle(rows, cols):
+    data = []
+    for row in range(rows):
+        rowData = []
+        for col in range(cols):
+            coordX = col/cols
+            coordY = row/rows
+            ecuacion = (coordX-0.5)**2 + (coordY-0.5)**2
+            if ecuacion <= 0.25**2:
+                rowData.append(numpy.array([1], numpy.uint8))
+            else:
+                rowData.append(numpy.array([0], numpy.uint8))
+        data.append(rowData)
+    return data
+
 def loadImage(imageFileName):
     image = Image.open(imageFileName)
     data = asarray(image)
@@ -150,7 +165,11 @@ def dataToSdf(data, internalValue, coordinates, distances, values, heightInit, h
     width = len(data[0])
     for row in range(heightInit, heightEnd):
         for col in range(width):
-            print("row: {}, col: {}, MaxRow:{}, MaxCol:{}".format(row, col, height, width))
+            #print("heightInit: {}, heightEnd: {}".format(heightInit, heightEnd))
+            #print("row: {}, col: {}, MaxRow:{}, MaxCol:{}".format(row, col, height, width))
+            #print(data[row])
+            #print(data[row][col])
+            #print(data[row][col][0])
             coordinates.append([col/float(width), row/float(height)])
             values.append(-1 if data[row][col][0] != 0 else 0)
 
@@ -165,29 +184,28 @@ def dataToSdf(data, internalValue, coordinates, distances, values, heightInit, h
             if (pixelValue == internalValue).all():
                 isInternal = True
 
-            for i in range(max(height, width)**2):
-                if (-height/2 < y <= height/2) and (-width/2 < x <= width/2):
+            for i in range(height*width):
+                if (y<height) and (x<width):
                     if compare(data[y][x], internalValue, isInternal):
                         break
                 y_row = y-row
                 x_col = x-col
+
                 if y_row == x_col or (y_row < 0 and y_row == -x_col) or (y_row > 0 and y_row == 1-x_col):
                     drow, dcol = -dcol, drow
                 x, y = x+dcol, y+drow
 
             distance = max(abs(y-row), abs(x-col))
+            #print("row: {}, col: {}, y: {}, x:{}, y-row:{}, x-col:{}, distance:{}".format(row, col, y, x, y-row, x-col, distance))
             if (pixelValue == internalValue).all():
                 distance = -(distance-1)
             #print(distance)
             distances.append(distance)
 
-    print(distances)
+    # print(distances)
 
-def imageToSdfProcess(imageFileName, internalValue, NProcesses):
-    print("empezo")
-    image = Image.open(imageFileName)
-    data = asarray(image)
 
+def dataToSdfProcess(data, internalValue, NProcesses):
     Nheight = int(len(data)/NProcesses)
     processes = list()
 
@@ -207,7 +225,7 @@ def imageToSdfProcess(imageFileName, internalValue, NProcesses):
         heightInit = Nheight*i
         heightEnd = Nheight*(i+1)
         if i == NProcesses-1:
-            heightEnd += Nheight%NProcesses
+            heightEnd += len(data)%NProcesses
         p = Process(target=dataToSdf, args=(data, internalValue, coordinates[i], distances[i], values[i], heightInit, heightEnd,))
         processes.append(p)
         p.start()
@@ -218,28 +236,58 @@ def imageToSdfProcess(imageFileName, internalValue, NProcesses):
     coordinates = list(itertools.chain.from_iterable(coordinates))
     distances = list(itertools.chain.from_iterable(distances))
     values = list(itertools.chain.from_iterable(values))
-    print("############ FIN #############")
-    print("coordinates: {}".format(coordinates))
-    print("distances: {}".format(distances))
-    print("values: {}".format(values))
 
-    coordinatesFile = open("coordinates.txt", "a")
+    print("############ FIN #############")
+    # print("coordinates: {}".format(coordinates))
+    # print("distances: {}".format(distances))
+    # print("values: {}".format(values))
+
+    coordinatesFile = open("/files/coordinates.txt", "a")
     coordinatesFile.write("{}\n".format(coordinates))
     coordinatesFile.close()
 
-    distancesFile = open("distances.txt", "a")
+    distancesFile = open("/files/distances.txt", "a")
     distancesFile.write("{}\n".format(distances))
     distancesFile.close()
 
-    valuesFile = open("values.txt", "a")
+    valuesFile = open("/files/values.txt", "a")
     valuesFile.write("{}\n".format(values))
     valuesFile.close()
 
     return coordinates, distances, values
 
 
+def imageToSdfProcess(imageFileName, internalValue, NProcesses):
+    print("empezo")
+    image = Image.open(imageFileName)
+    data = asarray(image)
+
+    return dataToSdfProcess(data, internalValue, NProcesses)
+
+
 if __name__ == "__main__":
-    internalValue = numpy.array([255, 255, 255, 255], numpy.uint8)
+    # internalValue = numpy.array([255, 255, 255, 255], numpy.uint8)
+    # numberOfProcesses = 4
+    # imageFileName = "./densityMap.png"
+    # imageToSdfProcess(imageFileName, internalValue, numberOfProcesses)
+
+    rows = 12
+    cols = 12
+    circle = makeCircle(rows, cols)
+    for row in circle:
+        rowp = []
+        for col in row:
+            rowp.append(col[0])
+        print("{}".format(rowp))
+
+    internalValue = numpy.array([1], numpy.uint8)
     numberOfProcesses = 4
-    imageFileName = "./densityMap.png"
-    imageToSdfProcess(imageFileName, internalValue, numberOfProcesses)
+
+    c, d, v = dataToSdfProcess(circle, internalValue, numberOfProcesses)
+
+    dist = []
+    for i in range(len(d)):
+        dist.append(d[i])
+        if (i+1)%cols == 0:
+            print("{}".format(dist))
+            dist = []

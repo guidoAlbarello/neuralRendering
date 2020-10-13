@@ -3,5 +3,7 @@ services:
   to_sdf:
     container_name: to_sdf
     image: "python-numpy:latest"
+    volumes:
+      - ./files:/files
     entrypoint: python3 toSdf.py
     restart: on-failure
