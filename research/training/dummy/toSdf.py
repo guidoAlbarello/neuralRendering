@@ -175,16 +175,16 @@ def imageToSdf2(imageFileName, internalValue):
 def compare(color, internalColor, isInternal):
     return (color != internalColor).any() if isInternal else (color == internalColor).all()
 
-def dataToSdf(data, internalValue, coordinates, distances, values, heightInit, heightEnd):
+def dataToSdf(id, data, internalValue, coordinates, distances, values, heightInit, heightEnd):
     height = len(data)
     width = len(data[0])
+    processedPixels = 0
+    totalPixels = width * (heightEnd - heightInit)
+    print("Row range: {} - {}".format(heightInit, heightEnd))
     for row in range(heightInit, heightEnd):
         for col in range(width):
-            #print("heightInit: {}, heightEnd: {}".format(heightInit, heightEnd))
-            #print("row: {}, col: {}, MaxRow:{}, MaxCol:{}".format(row, col, height, width))
-            #print(data[row])
-            #print(data[row][col])
-            #print(data[row][col][0])
+            print("Process {} => Completed: {}%, ProcessedPixels: {}/{}.".format(id, round(processedPixels/totalPixels*100, 2), processedPixels, totalPixels))
+            processedPixels += 1
             coordinates.append([col/float(width), row/float(height)])
             values.append(-1 if data[row][col][0] != 0 else 0)
 
