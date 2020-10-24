@@ -240,7 +240,7 @@ def dataToSdfProcess(data, internalValue, NProcesses):
         heightEnd = Nheight*(i+1)
         if i == NProcesses-1:
             heightEnd += len(data)%NProcesses
-        p = Process(target=dataToSdf, args=(data, internalValue, coordinates[i], distances[i], values[i], heightInit, heightEnd,))
+        p = Process(target=dataToSdf, args=(i, data, internalValue, coordinates[i], distances[i], values[i], heightInit, heightEnd))
         processes.append(p)
         p.start()
 
@@ -256,15 +256,15 @@ def dataToSdfProcess(data, internalValue, NProcesses):
     # print("distances: {}".format(distances))
     # print("values: {}".format(values))
 
-    coordinatesFile = open("/files/coordinates.txt", "a")
+    coordinatesFile = open("./files/coordinates.txt", "w")
     coordinatesFile.write("{}\n".format(coordinates))
     coordinatesFile.close()
 
-    distancesFile = open("/files/distances.txt", "a")
+    distancesFile = open("./files/distances.txt", "w")
     distancesFile.write("{}\n".format(distances))
     distancesFile.close()
 
-    valuesFile = open("/files/values.txt", "a")
+    valuesFile = open("./files/values.txt", "w")
     valuesFile.write("{}\n".format(values))
     valuesFile.close()
 
@@ -280,11 +280,12 @@ def imageToSdfProcess(imageFileName, internalValue, NProcesses):
 
 
 if __name__ == "__main__":
-    # internalValue = numpy.array([255, 255, 255, 255], numpy.uint8)
-    # numberOfProcesses = 4
-    # imageFileName = "./densityMap.png"
-    # imageToSdfProcess(imageFileName, internalValue, numberOfProcesses)
-
+    internalValue = numpy.array([255, 255, 255, 255], numpy.uint8)
+    numberOfProcesses = 10
+    imageFileName = "./densityMap.png"
+    imageToSdfProcess(imageFileName, internalValue, numberOfProcesses)
+    
+    '''
     rows = 12
     cols = 12
     circle = makeCircle(rows, cols)
@@ -295,7 +296,7 @@ if __name__ == "__main__":
         print("{}".format(rowp))
 
     internalValue = numpy.array([1], numpy.uint8)
-    numberOfProcesses = 4
+    numberOfProcesses = 10
 
     c, d, v = dataToSdfProcess(circle, internalValue, numberOfProcesses)
 
@@ -305,3 +306,4 @@ if __name__ == "__main__":
         if (i+1)%cols == 0:
             print("{}".format(dist))
             dist = []
+    '''
