@@ -5,6 +5,8 @@ class RaymarcherMaterial extends Material {
     let uniforms = {
       iTime: { value: 0 },
       iResolution: { value: new THREE.Vector3() },
+      eyeOrientation : {value : 0},
+      pos: {value :0}
     };
 
     this.uniforms = uniforms;
