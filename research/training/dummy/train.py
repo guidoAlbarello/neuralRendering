@@ -68,7 +68,7 @@ X = [[0.0, 0.0], [0.08333333333333333, 0.0], [0.16666666666666666, 0.0], [0.25, 
 y = [4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 3, 3, 3, 2, 2, 2, 2, 2, 3, 3, 3, 4, 3, 2, 2, 2, 1, 1, 1, 2, 2, 2, 3, 3, 3, 2, 1, 1, 1, 0, 1, 1, 1, 2, 3, 3, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2, 3, 2, 1, 1, 0, -1, -1, -1, 0, 1, 1, 2, 3, 2, 1, 0, 0, -1, -2, -1, 0, 0, 1, 2, 3, 2, 1, 1, 0, -1, -1, -1, 0, 1, 1, 2, 3, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2, 3, 3, 2, 1, 1, 1, 0, 1, 1, 1, 2, 3, 4, 3, 2, 2, 2, 1, 1, 1, 2, 2, 2, 3, 4, 3, 3, 3, 2, 2, 2, 2, 2, 3, 3, 3]
 
 clf = MLPRegressor(solver='lbfgs', alpha=1e-5, activation='relu',
-                    hidden_layer_sizes=(64,32,16 ,8), random_state=1, max_iter=200, verbose=True)
+                    hidden_layer_sizes=(16,16 ,8), random_state=1, max_iter=200, verbose=True)
 clf.fit(X, y)
 print(clf.predict([[0.5,0.5]]))
 formatter.toTestShader(formatter.SquashFunction.RELU,
