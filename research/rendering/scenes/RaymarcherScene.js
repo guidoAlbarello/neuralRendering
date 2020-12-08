@@ -19,7 +19,7 @@ class RaymarcherScene extends Scene {
             1, // far
         );
         this.scene = new THREE.Scene();
-        let plane = new THREE.PlaneBufferGeometry(2, 2);
+        let plane = new THREE.PlaneBufferGeometry(2,2);
         this.raymarcher = await new RaymarcherMaterial().load(this.RAYMARCHER_SHADER);
 
         this.scene.add(new THREE.Mesh(plane, this.raymarcher.getMaterial()));
