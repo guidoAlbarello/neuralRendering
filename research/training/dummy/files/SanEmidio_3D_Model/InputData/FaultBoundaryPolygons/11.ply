@@ -1,0 +1,11 @@
+# Type: polygon data
+# Version: 6
+# Description: Convex hull boundary around (SanEmidio_faults/fault/11.dat)
+# Format: fixed
+# Field: x 1 20
+# Field: y 21 40
+# Projection: Universal Transverse Mercator
+# Zone: 11
+# Units: meters
+# Ellipsoid: GRS 1980/NAD83
+# End:

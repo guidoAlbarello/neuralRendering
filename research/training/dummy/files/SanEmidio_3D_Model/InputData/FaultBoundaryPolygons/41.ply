@@ -1,0 +1,23 @@
+# Type: polygon data
+# Version: 7
+# Description: Convex hull boundary around (SanEmidio_faults/fault/41.dat)
+# Format: fixed
+# Field: x 1 20
+# Field: y 21 40
+# Projection: Universal Transverse Mercator
+# Zone: 11
+# Units: meters
+# Ellipsoid: GRS 1980/NAD83
+# End:
+POLYGON
+     301931.29273047      4478561.905577
+     300881.97023725     4479156.5216564
+      300409.7751153     4479305.1756763
+     300182.42190843     4479331.4087386
+     300129.95578377     4479217.7321352
+     300252.37674131     4478990.3789284
+      300497.2186564     4478763.0257215
+     301703.93952361     4478343.2967242
+     301887.57095992     4478352.0410783
+     301922.54837636     4478448.2289735
+     301931.29273047      4478561.905577
