@@ -1,7 +1,7 @@
 // Scene which displays a plane that covers the whole canvas. This scene is used to model
 // only with a fragment shader.
 class RaymarcherScene extends Scene {
-    RAYMARCHER_SHADER = "../materials/shaders/fragmentShaders/raymarcher2d.glsl";
+    RAYMARCHER_SHADER = "../materials/shaders/fragmentShaders/raymarcher.glsl";
 
     camera;
     scene;
