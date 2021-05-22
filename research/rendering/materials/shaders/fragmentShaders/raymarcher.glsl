@@ -18,10 +18,9 @@ const float EPSILON = 0.0001;
  * Signed distance function for a sphere centered at the origin with radius 1.0;
  */
 
-
 float sphereSD(vec3 p, vec3 pos, float r) { return length(pos - p) - r; }
 float sphereSDF(vec3 inputPoint) {
-    return min(sphereSD(inputPoint, vec3(11.0, 11.0, 18.0), 4.123105625617661), min(sphereSD(inputPoint, vec3(11.0, 11.0, 3.0), 2.23606797749979), min(sphereSD(inputPoint, vec3(11.0, 10.0, 12.0), 2.8284271247461903), min(sphereSD(inputPoint, vec3(11.0, 8.0, 9.0), 2.23606797749979), min(sphereSD(inputPoint, vec3(10.0, 12.0, 15.0), 3.1622776601683795), min(sphereSD(inputPoint, vec3(8.0, 19.0, 0.0), 8.54400374531753), min(sphereSD(inputPoint, vec3(2.0, 19.0, 19.0), 11.0), min(sphereSD(inputPoint, vec3(0.0, 14.0, 8.0), 12.165525060596439), min(sphereSD(inputPoint, vec3(0.0, 0.0, 16.0), 15.297058540778355), sphereSD(inputPoint, vec3(0.0, 0.0, 0.0), 15.811388300841896))))))))));
+return min(sphereSD(inputPoint, vec3(0.0, 6.0, 0.1414213562373095), 0.1414213562373095), min(sphereSD(inputPoint, vec3(0.0, 5.0, 0.31622776601683794), 0.31622776601683794), min(sphereSD(inputPoint, vec3(0.0, 4.0, 0.2449489742783178), 0.2449489742783178), min(sphereSD(inputPoint, vec3(0.0, 4.0, 0.3), 0.3), min(sphereSD(inputPoint, vec3(0.0, 3.0, 0.3741657386773941), 0.3741657386773941), min(sphereSD(inputPoint, vec3(0.0, 3.0, 0.2449489742783178), 0.2449489742783178), min(sphereSD(inputPoint, vec3(0.0, 0.0, 0.3605551275463989), 0.3605551275463989), min(sphereSD(inputPoint, vec3(0.0, 0.0, 0.42426406871192845), 0.42426406871192845), min(sphereSD(inputPoint, vec3(0.0, 0.0, 0.3741657386773941), 0.3741657386773941), sphereSD(inputPoint, vec3(0.0, 0.0, 0.0), 0.7348469228349535))))))))));
 }
 
 /**

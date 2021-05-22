@@ -12,4 +12,6 @@
 
 ## Instructions to run
 
-Run *node server.js* to boot up the rendering server.
+Run `npm install` to install dependencies.
+
+Run `node server.js` to boot up the rendering server.
