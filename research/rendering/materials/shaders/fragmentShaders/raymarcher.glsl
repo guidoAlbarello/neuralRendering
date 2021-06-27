@@ -175,8 +175,15 @@ mat4 viewMatrixs(vec3 eye, vec3 center, vec3 up) {
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-	vec3 dir = rayDirection(45.0, iResolution.xy, fragCoord);
-	vec3 eye = vec3(sin(iTime*0.5), 0.0, cos(iTime*0.5)*5.0);
+    float angle = iTime*0.5;
+    mat3 rotation = mat3(
+            vec3(cos(angle), 0.0, -sin(angle)),
+            vec3(0.0, 1.0, 0.0),
+            vec3(sin(angle), 0.0, cos(angle))
+        );
+    vec3 dir = normalize(rotation*rayDirection(45.0, iResolution.xy, fragCoord));
+    vec3 eye = rotation*vec3(0.0,0.0,5.0);
+
     float dist = shortestDistanceToSurface(eye, dir, MIN_DIST, MAX_DIST);
     
     if (dist > MAX_DIST - EPSILON) {
