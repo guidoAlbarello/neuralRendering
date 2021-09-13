@@ -22,12 +22,67 @@ const float EPSILON = 0.0001;
     vec3 d = abs(p) - vec3(1.0, 1.0, 1.0);
     return min(max(d.x,max(d.y,d.z)),0.0) + length(max(d,0.0));
 }
- float smoothUnion(float a, float b) {
+
+float smoothUnion(float a, float b) {
     float k = 0.1;
     float h = max( k-abs(a-b), 0.0 )/k;
-    return min( a, b ) - h*h*k*(1.0/4.0); }
-float sphereSDF(vec3 p, vec3 pos, float r) { return length(pos - p) - r; }
+    return min( a, b ) - h*h*k*(1.0/4.0); 
+}
 
+float sphereSDF(vec3 p, vec3 pos, float r) {
+    return length(pos - p) - r; 
+}
+
+float vmax(vec3 v){
+     return max(max(v.x, v.y), v.z);
+}
+        
+float sdf_boxcheap(vec3 c, vec3 p, vec3 s){
+     return vmax(abs(p-c) - s);
+}
+
+float soil0SDF(vec3 inputPoint) {
+return smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.1, 0.0), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.0, 0.25), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.1, 0.15000000000000002), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.0, 0.2), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.0, 0.1), 0.07071067811865475), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.0, 0.1), 0.1118033988749895), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.0, 0.0), 0.12247448713915893), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.0, 0.0), 0.14142135623730953), sphereSDF(inputPoint, vec3(0.7000000000000001, 0.0, 0.0), 0.15)))))))));
+}
+
+float soil1SDF(vec3 inputPoint) {
+return smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.15000000000000002, 0.30000000000000004), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.25, 0.25), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.0, 0.45), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.15000000000000002, 0.35000000000000003), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.25, 0.2), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.4, 0.05), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.0, 0.4), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.2, 0.25), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.35000000000000003, 0.05), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.25, 0.15000000000000002), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.25, 0.15000000000000002), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.0, 0.45), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.5, 0.0), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.05, 0.1), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.0, 0.4), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.0, 0.35000000000000003), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.0, 0.2), 0.05000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.0, 0.45), 0.0707106781186547), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.0, 0.30000000000000004), 0.08660254037844382), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.15000000000000002, 0.2), 0.08660254037844385), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.0, 0.35000000000000003), 0.10000000000000003), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.1, 0.2), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.25, 0.0), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.15000000000000002, 0.15000000000000002), 0.11180339887498952), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.1, 0.30000000000000004), 0.11180339887498952), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.25, 0.0), 0.12247448713915884), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.25, 0.0), 0.15), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.25, 0.0), 0.15811388300841894), sphereSDF(inputPoint, vec3(0.0, 0.0, 0.30000000000000004), 0.17320508075688773)))))))))))))))))))))))))))));
+}
+
+float soil2SDF(vec3 inputPoint) {
+return smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.1, 0.45), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.05, 0.5), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.2, 0.4), 0.05000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.15000000000000002, 0.4), 0.05000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.2, 0.35000000000000003), 0.05000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.30000000000000004, 0.25), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.8, 0.95), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.5, 0.45), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.55, 0.45), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.65, 0.6000000000000001), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.55, 0.6000000000000001), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.45, 0.75), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.65, 0.5), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.5, 0.55), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.65, 0.95), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.5, 0.2), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.6000000000000001, 0.2), 0.07071067811865465), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.25, 0.8), 0.0707106781186547), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.15000000000000002, 0.65), 0.0707106781186547), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.7000000000000001, 0.0), 0.0707106781186547), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.55, 0.8), 0.07071067811865474), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.1, 0.5), 0.07071067811865475), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.35000000000000003, 0.1), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.75, 0.4), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.0, 0.55), 0.07071067811865482), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.55, 0.30000000000000004), 0.07071067811865482), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.5, 0.95), 0.07071067811865482), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.55, 0.6000000000000001), 0.07071067811865482), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.65, 0.75), 0.08660254037844388), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.55, 0.65), 0.0866025403784439), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.2, 0.4), 0.08660254037844392), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.8, 0.0), 0.08660254037844392), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.5, 0.0), 0.09999999999999998), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.2, 0.95), 0.09999999999999998), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.8, 0.35000000000000003), 0.09999999999999998), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.4, 0.7000000000000001), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.95, 0.95), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.4, 0.2), 0.12247448713915887), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.5, 0.6000000000000001), 0.12247448713915896), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.7000000000000001, 0.95), 0.1414213562373095), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.4, 0.25), 0.14142135623730953), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.7000000000000001, 0.95), 0.15), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.55, 0.0), 0.15), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.25, 0.45), 0.15811388300841894), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.30000000000000004, 0.55), 0.18027756377319948), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.65, 0.0), 0.18708286933869706), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.0, 0.75), 0.18708286933869708), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.45, 0.35000000000000003), 0.21213203435596428), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.8, 0.0), 0.291547594742265), sphereSDF(inputPoint, vec3(0.2, 0.1, 0.95), 0.4582575694955841))))))))))))))))))))))))))))))))))))))))))))))))));
+}
+
+float soil3SDF(vec3 inputPoint) {
+return smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.75, 0.95), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.2, 0.8500000000000001), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.75, 0.65), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.75, 0.75), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.75, 0.7000000000000001), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.95, 0.8500000000000001), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.65, 0.95), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.65, 0.8500000000000001), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.95, 0.8500000000000001), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.25, 0.8), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.95, 0.35000000000000003), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.95, 0.4), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.5, 0.30000000000000004), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.6000000000000001, 0.5), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.35000000000000003, 0.95), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.95, 0.30000000000000004), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.75, 0.5), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.8500000000000001, 0.95), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.7000000000000001, 0.75), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.8, 0.05), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.8500000000000001, 0.1), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.8, 0.8), 0.05000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.95, 0.95), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.8500000000000001, 0.30000000000000004), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.95, 0.55), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.95, 0.35000000000000003), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.8, 0.55), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.9, 0.45), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.75, 0.4), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.35000000000000003, 0.8), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.6000000000000001, 0.35000000000000003), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.55, 0.75), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.5, 0.8500000000000001), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.55, 0.4), 0.07071067811865474), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.55, 0.8500000000000001), 0.07071067811865474), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.95, 0.05), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.55, 0.4), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.6000000000000001, 0.25), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.95, 0.05), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.8, 0.15000000000000002), 0.0707106781186548), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.7000000000000001, 0.55), 0.0707106781186548), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.7000000000000001, 0.5), 0.07071067811865482), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.35000000000000003, 0.9), 0.08660254037844388), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.95, 0.0), 0.09999999999999998), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.9, 0.7000000000000001), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.7000000000000001, 0.25), 0.12247448713915887), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.65, 0.95), 0.12247448713915893), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.95, 0.2), 0.12247448713915896), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.95, 0.6000000000000001), 0.2), sphereSDF(inputPoint, vec3(0.8, 0.95, 0.55), 0.3937003937005905))))))))))))))))))))))))))))))))))))))))))))))))));
+}
+
+
+/**
+ 
+* Signed distance function describing the scene.
+ 
+* 
+ 
+* Absolute value of the return value indicates the distance to the surface.
+ 
+* Sign indicates whether the point is inside or outside the surface,
+ 
+* negative indicating inside.
+ 
+*/
+ 
+float sceneSDF(vec3 samplePoint) {
+
+    float dist = max(min(min(min(soil0SDF(samplePoint), soil1SDF(samplePoint)), soil2SDF(samplePoint)), soil3SDF(samplePoint)), cubeSDF(samplePoint));
+    
+    dist = max(dist, -sphereSDF(samplePoint, vec3(sin(iTime), cos(iTime),sin(iTime)), sin(0.23*3.0*iTime)));
+    
+
+    
+    return dist;
+    
+}
 
 
 /**
@@ -170,66 +225,6 @@ mat4 viewMatrixs(vec3 eye, vec3 center, vec3 up) {
 }
 
 
-float smoothUnion(float a, float b) {
-    float k = 0.1;
-    float h = max( k-abs(a-b), 0.0 )/k;
-    return min( a, b ) - h*h*k*(1.0/4.0); 
-}
-
-float sphereSDF(vec3 p, vec3 pos, float r) {
-    return length(pos - p) - r; 
-}
-
-float vmax(vec3 v){
-     return max(max(v.x, v.y), v.z);
-}
-        
-float sdf_boxcheap(vec3 c, vec3 p, vec3 s){
-     return vmax(abs(p-c) - s);
-}
-
-float soil0SDF(vec3 inputPoint) {
-return smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.1, 0.0), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.0, 0.25), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.1, 0.15000000000000002), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.0, 0.2), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.0, 0.1), 0.07071067811865475), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.0, 0.1), 0.1118033988749895), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.0, 0.0), 0.12247448713915893), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.0, 0.0), 0.14142135623730953), sphereSDF(inputPoint, vec3(0.7000000000000001, 0.0, 0.0), 0.15)))))))));
-}
-
-float soil1SDF(vec3 inputPoint) {
-return smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.15000000000000002, 0.30000000000000004), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.25, 0.25), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.0, 0.45), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.15000000000000002, 0.35000000000000003), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.25, 0.2), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.4, 0.05), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.0, 0.4), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.2, 0.25), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.35000000000000003, 0.05), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.25, 0.15000000000000002), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.25, 0.15000000000000002), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.0, 0.45), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.5, 0.0), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.05, 0.1), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.0, 0.4), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.0, 0.35000000000000003), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.0, 0.2), 0.05000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.0, 0.45), 0.0707106781186547), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.0, 0.30000000000000004), 0.08660254037844382), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.15000000000000002, 0.2), 0.08660254037844385), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.0, 0.35000000000000003), 0.10000000000000003), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.1, 0.2), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.25, 0.0), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.15000000000000002, 0.15000000000000002), 0.11180339887498952), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.1, 0.30000000000000004), 0.11180339887498952), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.25, 0.0), 0.12247448713915884), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.25, 0.0), 0.15), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.25, 0.0), 0.15811388300841894), sphereSDF(inputPoint, vec3(0.0, 0.0, 0.30000000000000004), 0.17320508075688773)))))))))))))))))))))))))))));
-}
-
-float soil2SDF(vec3 inputPoint) {
-return smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.1, 0.45), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.05, 0.5), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.2, 0.4), 0.05000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.15000000000000002, 0.4), 0.05000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.2, 0.35000000000000003), 0.05000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.30000000000000004, 0.25), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.8, 0.95), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.5, 0.45), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.55, 0.45), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.65, 0.6000000000000001), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.55, 0.6000000000000001), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.45, 0.75), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.65, 0.5), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.5, 0.55), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.65, 0.95), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.5, 0.2), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.6000000000000001, 0.2), 0.07071067811865465), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.25, 0.8), 0.0707106781186547), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.15000000000000002, 0.65), 0.0707106781186547), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.7000000000000001, 0.0), 0.0707106781186547), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.55, 0.8), 0.07071067811865474), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.1, 0.5), 0.07071067811865475), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.35000000000000003, 0.1), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.75, 0.4), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.0, 0.55), 0.07071067811865482), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.55, 0.30000000000000004), 0.07071067811865482), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.5, 0.95), 0.07071067811865482), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.55, 0.6000000000000001), 0.07071067811865482), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.65, 0.75), 0.08660254037844388), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.55, 0.65), 0.0866025403784439), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.2, 0.4), 0.08660254037844392), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.8, 0.0), 0.08660254037844392), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.5, 0.0), 0.09999999999999998), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.2, 0.95), 0.09999999999999998), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.8, 0.35000000000000003), 0.09999999999999998), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.4, 0.7000000000000001), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.95, 0.95), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.4, 0.2), 0.12247448713915887), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.5, 0.6000000000000001), 0.12247448713915896), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.7000000000000001, 0.95), 0.1414213562373095), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.4, 0.25), 0.14142135623730953), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.7000000000000001, 0.95), 0.15), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.55, 0.0), 0.15), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.25, 0.45), 0.15811388300841894), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.30000000000000004, 0.55), 0.18027756377319948), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.65, 0.0), 0.18708286933869706), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.0, 0.75), 0.18708286933869708), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.45, 0.35000000000000003), 0.21213203435596428), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.8, 0.0), 0.291547594742265), sphereSDF(inputPoint, vec3(0.2, 0.1, 0.95), 0.4582575694955841))))))))))))))))))))))))))))))))))))))))))))))))));
-}
-
-float soil3SDF(vec3 inputPoint) {
-return smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.75, 0.95), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.2, 0.8500000000000001), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.75, 0.65), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.75, 0.75), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.75, 0.7000000000000001), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.95, 0.8500000000000001), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.65, 0.95), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.65, 0.8500000000000001), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.95, 0.8500000000000001), 0.04999999999999993), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.25, 0.8), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.95, 0.35000000000000003), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.95, 0.4), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.5, 0.30000000000000004), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.6000000000000001, 0.5), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.35000000000000003, 0.95), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.95, 0.30000000000000004), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.75, 0.5), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.8500000000000001, 0.95), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.7000000000000001, 0.75), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.8, 0.05), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.8500000000000001, 0.1), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.8, 0.8), 0.05000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.95, 0.95), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.8500000000000001, 0.30000000000000004), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.95, 0.55), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.95, 0.35000000000000003), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.8, 0.55), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.9, 0.45), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.75, 0.4), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.35000000000000003, 0.8), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.6000000000000001, 0.35000000000000003), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.55, 0.75), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.5, 0.8500000000000001), 0.05000000000000005), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.55, 0.4), 0.07071067811865474), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.55, 0.8500000000000001), 0.07071067811865474), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.95, 0.05), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.55, 0.4), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.6000000000000001, 0.25), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.95, 0.05), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.8, 0.15000000000000002), 0.0707106781186548), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.7000000000000001, 0.55), 0.0707106781186548), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.7000000000000001, 0.5), 0.07071067811865482), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.35000000000000003, 0.9), 0.08660254037844388), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.95, 0.0), 0.09999999999999998), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.9, 0.7000000000000001), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.7000000000000001, 0.25), 0.12247448713915887), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.65, 0.95), 0.12247448713915893), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.95, 0.2), 0.12247448713915896), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.95, 0.6000000000000001), 0.2), sphereSDF(inputPoint, vec3(0.8, 0.95, 0.55), 0.3937003937005905))))))))))))))))))))))))))))))))))))))))))))))))));
-}
-
-
-/**
- 
-* Signed distance function describing the scene.
- 
-* 
- 
-* Absolute value of the return value indicates the distance to the surface.
- 
-* Sign indicates whether the point is inside or outside the surface,
- 
-* negative indicating inside.
- 
-*/
- 
-float sceneSDF(vec3 samplePoint) {
-
-    float dist = max(min(min(min(soil0SDF(samplePoint), soil1SDF(samplePoint)), soil2SDF(samplePoint)), soil3SDF(samplePoint)), cubeSDF(samplePoint));
-    
-    dist = max(dist, -sphereSDF(samplePoint, vec3(sin(iTime), cos(iTime),sin(iTime)), sin(0.23*3.0*iTime)));
-    
-
-    
-    return dist;
-    
-}
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 {
