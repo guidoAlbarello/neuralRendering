@@ -18,7 +18,12 @@ const float EPSILON = 0.0001;
  * Signed distance function for a sphere centered at the origin with radius 1.0;
  */
 
- float cubeSDF(vec3 p) {
+float cubeSDF(vec3 p) {
     vec3 d = abs(p) - vec3(1.0, 1.0, 1.0);
     return min(max(d.x,max(d.y,d.z)),0.0) + length(max(d,0.0));
 }
+
+float sphereSDF(vec3 p, vec3 pos, float r) {
+    return length(pos - p) - r; 
+}
+
