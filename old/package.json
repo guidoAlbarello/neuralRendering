@@ -18,7 +18,7 @@
   "homepage": "https://github.com/guidoAlbarello/neuralRendering#readme",
   "dependencies": {
     "express": "^4.17.1",
-    "three": "^0.119.1"
+    "three": "^0.140.0"
   },
   "devDependencies": {
     "webpack": "^4.44.1",
