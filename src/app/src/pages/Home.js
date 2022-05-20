@@ -1,5 +1,12 @@
+import React from "react";
+
 const Home = () => {
-    return <h1>Home</h1>;
+    return (
+      <React.Fragment>
+        <h1>Welcome to the internet!</h1>
+        <h3>Fasten your seatbelt</h3>
+      </React.Fragment>
+    );
   };
   
   export default Home;
