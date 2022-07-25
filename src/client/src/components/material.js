@@ -1,19 +1,12 @@
-// Represents a shader resource.
+import * as THREE from 'three';
+
 class Material {
     uniforms;
     material;
 
     // Loads a shader file.
     async load(pathname) {
-        let shader = await new Promise(resolve => {
-            $.get(
-                pathname,
-                function (data) {
-                    resolve(data);
-                },
-                "text"
-            );
-        });
+        let shader = await new Promise(resolve => {});
 
         this.compile(shader);
         return this;
@@ -41,3 +34,5 @@ class Material {
         return this.material;
     }
 }
+
+export default Material;

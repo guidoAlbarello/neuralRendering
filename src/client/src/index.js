@@ -9,6 +9,7 @@ import reportWebVitals from './reportWebVitals';
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
+import Model from "./pages/Model";
 import Models from "./pages/Models";
 import Explorer from "./pages/Explorer";
 import Docs from "./pages/Docs";
@@ -20,8 +21,8 @@ ReactDOM.render(
       <Routes>
         <Route path="/" element={<App />}>
           <Route index element={<Home />} />
-          <Route exact path="models" element={<Models />} />
-          <Route path="models/:id" element={<Models />} />
+          <Route path="models" element={<Models />} />
+          <Route path="models/:modelId" element={<Model />}/>
           <Route path="explorer" element={<Explorer />} />
           <Route path="docs" element={<Docs />} />
           <Route path="*" element={<NoPage />} />
