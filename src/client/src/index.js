@@ -3,7 +3,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 // components takes precedence over default styles.
 import './index.css';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
@@ -14,23 +13,24 @@ import Models from "./pages/Models";
 import Explorer from "./pages/Explorer";
 import Docs from "./pages/Docs";
 import NoPage from "./pages/NoPage";
+import { createRoot } from 'react-dom/client'
 
-ReactDOM.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App />}>
-          <Route index element={<Home />} />
-          <Route path="models" element={<Models />} />
-          <Route path="models/:modelId" element={<Model />}/>
-          <Route path="explorer" element={<Explorer />} />
-          <Route path="docs" element={<Docs />} />
-          <Route path="*" element={<NoPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  </React.StrictMode>,
-  document.getElementById('root')
+const container = document.getElementById('root');
+const root = createRoot(container); // createRoot(container!) if you use TypeScript
+root.render(<React.StrictMode>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<App />}>
+                    <Route index element={<Home />} />
+                    <Route path="models" element={<Models />} />
+                    <Route path="models/:modelId" element={<Model />}/>
+                    <Route path="explorer" element={<Explorer />} />
+                    <Route path="docs" element={<Docs />} />
+                    <Route path="*" element={<NoPage />} />
+                  </Route>
+                </Routes>
+              </BrowserRouter>
+            </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function
