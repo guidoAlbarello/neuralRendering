@@ -277,18 +277,10 @@ def set_sdf_to_internal_values_plane(i_interval, j_interval, k_interval, interna
 
     return points_to_recalculate
 
-from functools import reduce
+
 def set_sdf_to_internal_values(x, y, z, points, internal_value): # points = {((x,y,z), sdf_value), ((x,y,z), sdf_value)}
     # print("set_sdf_to_internal_values: Points: {}".format(points))
     level = int(distanceAmountCells3D(next(iter(points))[0], (x,y,z)))
-    # distances = list(map(
-    #     lambda point_with_sdf: set([(point_with_sdf[0], distanceAmountCells3D(point_with_sdf[0], (x,y,z)))]),
-    #     points
-    # ))
-    # most_near_point = reduce(min_set, distances)
-    # level = next(iter(most_near_point))[1]
-    # sdf[x][y][z] = distancePlusSdfForInternalValue(next(iter(most_near_point)), (x,y,z))
-
     sdf[x][y][z] = distancePlusSdfForInternalValue(next(iter(points)), (x,y,z))
     # print("set_sdf_to_internal_values: points: {} - level: {} - sdf[{}]: {}".format(points, level, [x,y,z], sdf[x][y][z]))
     level -= 1
@@ -343,14 +335,6 @@ def set_sdf_to_NO_internal_values_plane(i_interval, j_interval, k_interval, inte
 def set_sdf_to_NO_internal_values(x, y, z, points, internal_value): # points = {((x,y,z), sdf_value), ((x,y,z), sdf_value)}
     # print("set_sdf_to_internal_values: Points: {}".format(points))
     level = distanceSquared3D(next(iter(points))[0], (x,y,z))
-    # distances = list(map(
-    #     lambda point_with_sdf: set([(point_with_sdf[0], distanceAmountCells3D(point_with_sdf[0], (x,y,z)))]),
-    #     points
-    # ))
-    # most_near_point = reduce(min_set, distances)
-    # level = next(iter(most_near_point))[1]
-    # sdf[x][y][z] = - distancePlusSdfForNoInternalValue(next(iter(most_near_point)), (x,y,z))
-
     sdf[x][y][z] = - distancePlusSdfForNoInternalValue(next(iter(points)), (x,y,z))
     # print("set_sdf_to_NO_internal_values: points: {} - distance: {} - sdf[{}]: {}".format(points, level, [x,y,z], sdf[x][y][z]))
     level -= 1
