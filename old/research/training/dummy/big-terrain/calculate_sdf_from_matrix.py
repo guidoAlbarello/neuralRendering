@@ -32,10 +32,15 @@ def generate_terrain(shape):
 
 
 
+# con 11 tardo 14 seg
+# con 12 tardo 24.520941019058228 segundos
+# con 13 tardo 40.093600034713745 segundos
+# con 14 tardo 63.02473187446594 segundos
+# con 15 tardo 96.49892687797546 segundos
 
-x_total = 1
-y_total = 3
-z_total = 3
+x_total = 15
+y_total = 15
+z_total = 15
 shape = (x_total, y_total, z_total)
 sdf = np.zeros(shape)
 # sdf = [ [ [None] * x_total ] *y_total ] *z_total
@@ -93,7 +98,7 @@ def max_set(set1, set2): # set = {([x,y,z], sdf_value), ([x,y,z], sdf_value)}
     if set2 == set():
         return set1
 
-    print("max_set. Set 1: {} - Set 2: {}".format(set1, set2))
+    # print("max_set. Set 1: {} - Set 2: {}".format(set1, set2))
 
     value_set1 = next(iter(set1))
     value_set2 = next(iter(set2))
@@ -131,7 +136,7 @@ def get_distance_to_NO_internal_value(x, y, z, internal_value):
             for j in range(y-level, y+level+1):
                 for k in [z-level, z+level]:
                     if x_total>i>=0 and y_total>j>=0 and z_total>k>=0 and ([i,j,k] != [x,y,z]):
-                        print("get_distance_to_NO_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
+                        # print("get_distance_to_NO_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
                         sdf_value = sdf[i][j][k]
 
                         if sdf_value != 0 and sdf_value is not None:
@@ -152,7 +157,7 @@ def get_distance_to_NO_internal_value(x, y, z, internal_value):
             for k in range(z-level, z+level+1):
                 for j in [y-level, y+level]:
                     if x_total>i>=0 and y_total>j>=0 and z_total>k>=0 and ([i,j,k] != [x,y,z]):
-                        print("get_distance_to_NO_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
+                        # print("get_distance_to_NO_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
                         sdf_value = sdf[i][j][k]
 
                         if sdf_value != 0 and sdf_value is not None:
@@ -173,7 +178,7 @@ def get_distance_to_NO_internal_value(x, y, z, internal_value):
             for k in range(z-level, z+level+1):
                 for i in [x-level, x+level]:
                     if x_total>i>=0 and y_total>j>=0 and z_total>k>=0 and ([i,j,k] != [x,y,z]):
-                        print("get_distance_to_NO_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
+                        # print("get_distance_to_NO_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
                         sdf_value = sdf[i][j][k]
 
                         if sdf_value != 0 and sdf_value is not None:
@@ -210,7 +215,7 @@ def get_distance_to_internal_value(x, y, z, internal_value):
             for j in range(y-level, y+level+1):
                 for k in [z-level, z+level]:
                     if x_total>i>=0 and y_total>j>=0 and z_total>k>=0 and ([i,j,k] != [x,y,z]):
-                        print("get_distance_to_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
+                        # print("get_distance_to_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
                         sdf_value = sdf[i][j][k]
 
                         if sdf_value != 0 and sdf_value is not None:
@@ -231,7 +236,7 @@ def get_distance_to_internal_value(x, y, z, internal_value):
             for k in range(z-level, z+level+1):
                 for j in [y-level, y+level]:
                     if x_total>i>=0 and y_total>j>=0 and z_total>k>=0 and ([i,j,k] != [x,y,z]):
-                        print("get_distance_to_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
+                        # print("get_distance_to_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
                         sdf_value = sdf[i][j][k]
 
                         if sdf_value != 0 and sdf_value is not None:
@@ -252,7 +257,7 @@ def get_distance_to_internal_value(x, y, z, internal_value):
             for k in range(z-level, z+level+1):
                 for i in [x-level, x+level]:
                     if x_total>i>=0 and y_total>j>=0 and z_total>k>=0 and ([i,j,k] != [x,y,z]):
-                        print("get_distance_to_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
+                        # print("get_distance_to_internal_value: pre point GET DISTANCE: {}, {}, {}".format(i, j, k))
                         sdf_value = sdf[i][j][k]
 
                         if sdf_value != 0 and sdf_value is not None:
@@ -279,12 +284,12 @@ def get_distance_to_internal_value(x, y, z, internal_value):
 
 from math import sqrt
 def distanceSquared3D(point, other): # point = (x,y,z)
-    print("distanceSquared3D: point: {} - other: {}".format(point, other))
+    # print("distanceSquared3D: point: {} - other: {}".format(point, other))
     return int(sqrt((point[0]-other[0])**2 + (point[1]-other[1])**2 + (point[2]-other[2])**2))
 
 def distancePlusSdfForInternalValue(point_with_sdf, current_point): # point_with_sdf = ((x,y,z), sdf_value)
     # no es solo calcular las ditancias, sino que tambien hay que sumarle la sdf del punto en caso de ser interno
-    print("distancePlusSdfForInternalValue: point_with_sdf: {} - current_point: {}".format(point_with_sdf, current_point))
+    # print("distancePlusSdfForInternalValue: point_with_sdf: {} - current_point: {}".format(point_with_sdf, current_point))
     point = point_with_sdf[0]
     sdf_of_point = point_with_sdf[1]
     if sdf_of_point < 0: distance_to_plus = 0
@@ -294,10 +299,10 @@ def distancePlusSdfForInternalValue(point_with_sdf, current_point): # point_with
 
 def set_sdf_to_internal_values(x, y, z, points, internal_value): # points = {((x,y,z), sdf_value), ((x,y,z), sdf_value)}
     points_to_recalculate = set() # TODO: recalcularlos
-    print("set_sdf_to_internal_values: Points: {}".format(points))
+    # print("set_sdf_to_internal_values: Points: {}".format(points))
     distance = int(distanceSquared3D(next(iter(points))[0], (x,y,z)))
     sdf[x][y][z] = distancePlusSdfForInternalValue(next(iter(points)), (x,y,z))
-    print("set_sdf_to_internal_values: distance: {} - sdf[{}]: {}".format(distance, [x,y,z], sdf[x][y][z]))
+    # print("set_sdf_to_internal_values: distance: {} - sdf[{}]: {}".format(distance, [x,y,z], sdf[x][y][z]))
     distance -= 1
     while distance>0: # while  points is empty
         # planos z
@@ -305,7 +310,7 @@ def set_sdf_to_internal_values(x, y, z, points, internal_value): # points = {((x
             for j in range(y-distance, y+distance+1):
                 for k in [z-distance, z+distance]:
                     if x_total>i>=0 and y_total>j>=0 and z_total>k>=0 and ([i,j,k] != [x,y,z]):
-                        print(i,j,k)
+                        # print(i,j,k)
                         value_of_IJK = terrain[i][j][k]
                         IJK_is_internal_value = is_internal_value(value_of_IJK, internal_value)
                         if IJK_is_internal_value:
@@ -317,7 +322,7 @@ def set_sdf_to_internal_values(x, y, z, points, internal_value): # points = {((x
                             min_distance = min(distances)
                             if min_distance <= 2: # TODO: en el  futuro recalcular
                                 sdf[i][j][k] = min_distance
-                                print("set_sdf_to_internal_values: sdf[{}]: {}".format([i,j,k], sdf[i][j][k]))
+                                # print("set_sdf_to_internal_values: sdf[{}]: {}".format([i,j,k], sdf[i][j][k]))
                             if min_distance > 2:
                                 points_to_recalculate.add(current_point)
 
@@ -326,7 +331,7 @@ def set_sdf_to_internal_values(x, y, z, points, internal_value): # points = {((x
             for k in range(z-distance, z+distance+1):
                 for j in [y-distance, y+distance]:
                     if x_total>i>=0 and y_total>j>=0 and z_total>k>=0 and ([i,j,k] != [x,y,z]):
-                        print(i,j,k)
+                        # print(i,j,k)
                         value_of_IJK = terrain[i][j][k]
                         IJK_is_internal_value = is_internal_value(value_of_IJK, internal_value)
                         if IJK_is_internal_value:
@@ -338,7 +343,7 @@ def set_sdf_to_internal_values(x, y, z, points, internal_value): # points = {((x
                             min_distance = min(distances)
                             if min_distance <= 2: # TODO: en el  futuro recalcular
                                 sdf[i][j][k] = min_distance
-                                print("set_sdf_to_internal_values: sdf[{}]: {}".format([i,j,k], sdf[i][j][k]))
+                                # print("set_sdf_to_internal_values: sdf[{}]: {}".format([i,j,k], sdf[i][j][k]))
                             if min_distance > 2:
                                 points_to_recalculate.add(current_point)
 
@@ -347,7 +352,7 @@ def set_sdf_to_internal_values(x, y, z, points, internal_value): # points = {((x
             for k in range(z-distance, z+distance+1):
                 for i in [x-distance, x+distance]:
                     if x_total>i>=0 and y_total>j>=0 and z_total>k>=0 and ([i,j,k] != [x,y,z]):
-                        print(i,j,k)
+                        # print(i,j,k)
                         value_of_IJK = terrain[i][j][k]
                         IJK_is_internal_value = is_internal_value(value_of_IJK, internal_value)
                         if IJK_is_internal_value:
@@ -359,7 +364,7 @@ def set_sdf_to_internal_values(x, y, z, points, internal_value): # points = {((x
                             min_distance = min(distances)
                             if min_distance <= 2: # TODO: en el  futuro recalcular
                                 sdf[i][j][k] = min_distance
-                                print("set_sdf_to_internal_values: sdf[{}]: {}".format([i,j,k], sdf[i][j][k]))
+                                # print("set_sdf_to_internal_values: sdf[{}]: {}".format([i,j,k], sdf[i][j][k]))
                             if min_distance > 2:
                                 points_to_recalculate.add(current_point)
 
@@ -377,7 +382,7 @@ def distancePlusSdfForNoInternalValue(point_with_sdf, current_point): # point_wi
 
 def set_sdf_to_NO_internal_values(x, y, z, points, internal_value): # points = {((x,y,z), sdf_value), ((x,y,z), sdf_value)}
     points_to_recalculate = set() # TODO: recalcularlos
-    print("set_sdf_to_internal_values: Points: {}".format(points))
+    # print("set_sdf_to_internal_values: Points: {}".format(points))
     distance = distanceSquared3D(next(iter(points))[0], (x,y,z))
     sdf[x][y][z] = - distancePlusSdfForNoInternalValue(next(iter(points)), (x,y,z))
     distance -= 1
@@ -446,7 +451,7 @@ def set_sdf_to_NO_internal_values(x, y, z, points, internal_value): # points = {
 
 
 def get_distance(x, y, z, internal_value):
-    print("\nGET DISTANCE POINT [{},{},{}]".format(x,y,z))
+    # print("\nGET DISTANCE POINT [{},{},{}]".format(x,y,z))
     initial_sdf_value = sdf[x][y][z]
     if initial_sdf_value is not None and initial_sdf_value != 0:
         # print("la distancia de [{}, {}, {}] es {}".format(x,y,z, initial_sdf_value))
