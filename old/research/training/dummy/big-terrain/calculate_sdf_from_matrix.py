@@ -38,9 +38,12 @@ def generate_terrain(shape):
 # con 14 tardo 63.02473187446594 segundos
 # con 15 tardo 96.49892687797546 segundos
 
-x_total = 1
-y_total = 20
-z_total = 20
+# con 20: Calcular la sdf de una matrix tardo 455.0437340736389 segundos para el valor interno [0.0, 0.04]
+# con 30: Calcular la sdf de una matrix tardo 6490.835131883621 segundos para el valor interno [0.0, 0.04]
+
+x_total = 30
+y_total = 30
+z_total = 30
 shape = (x_total, y_total, z_total)
 sdf = np.zeros(shape)
 # sdf = [ [ [None] * x_total ] *y_total ] *z_total
