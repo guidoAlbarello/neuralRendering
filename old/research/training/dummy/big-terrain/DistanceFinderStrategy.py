@@ -1,3 +1,5 @@
+import multiprocessing
+
 class DistanceFinderStrategy:
     def __init__(self, sdf, terrain, internal_value):
         self.sdf = sdf
@@ -7,25 +9,66 @@ class DistanceFinderStrategy:
     def get_distance_to_different_point_value(self, x,y,z):
         level = 1
         while True: # while  points is empty
+            point_sdf_internal_queue = multiprocessing.Queue()
+            point_sdf_external_queue = multiprocessing.Queue()
+            some_point_does_not_know_his_value_queue = multiprocessing.Queue()
+            processes = []
+
             # planos z
-            z_point_sdf_internal, z_point_sdf_external, z_some_point_does_not_know_his_value = self.get_distance_to_different_value_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], [x,y,z])
+            # z_point_sdf_internal, z_point_sdf_external, z_some_point_does_not_know_his_value = self.get_distance_to_different_value_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], [x,y,z], point_sdf_internal_queue,
+            #                                                                                                                               point_sdf_external_queue,
+            #                                                                                                                               some_point_does_not_know_his_value_queue)
+            planeZ = multiprocessing.Process(target=self.get_distance_to_different_value_plane,
+                                             args=(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], [x,y,z],
+                                                   point_sdf_internal_queue,
+                                                   point_sdf_external_queue,
+                                                   some_point_does_not_know_his_value_queue))
+            processes.append(planeZ)
+            planeZ.start()
 
             # planos y
-            y_point_sdf_internal, y_point_sdf_external, y_some_point_does_not_know_his_value = self.get_distance_to_different_value_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), [x,y,z])
+            # y_point_sdf_internal, y_point_sdf_external, y_some_point_does_not_know_his_value = self.get_distance_to_different_value_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), [x,y,z], point_sdf_internal_queue,
+            #                                                                                                                                                                      point_sdf_external_queue,
+            #                                                                                                                                                                      some_point_does_not_know_his_value_queue)
+            planeY = multiprocessing.Process(target=self.get_distance_to_different_value_plane,
+                                             args=(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), [x,y,z],
+                                                   point_sdf_internal_queue,
+                                                   point_sdf_external_queue,
+                                                   some_point_does_not_know_his_value_queue))
+            processes.append(planeY)
+            planeY.start()
 
             # planos x
-            x_point_sdf_internal, x_point_sdf_external, x_some_point_does_not_know_his_value = self.get_distance_to_different_value_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), [x,y,z])
+            # x_point_sdf_internal, x_point_sdf_external, x_some_point_does_not_know_his_value = self.get_distance_to_different_value_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), [x,y,z], point_sdf_internal_queue,
+            #                                                                                                                                                                      point_sdf_external_queue,
+            #                                                                                                                                                                      some_point_does_not_know_his_value_queue)
+            planeX = multiprocessing.Process(target=self.get_distance_to_different_value_plane,
+                                             args=([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), [x,y,z],
+                                                   point_sdf_internal_queue,
+                                                   point_sdf_external_queue,
+                                                   some_point_does_not_know_his_value_queue))
+            processes.append(planeX)
+            planeX.start()
 
-            point_sdf_internal = self.max_set(self.max_set(x_point_sdf_internal, y_point_sdf_internal), z_point_sdf_internal)
-            point_sdf_external = self.min_set(self.min_set(x_point_sdf_external, y_point_sdf_external), z_point_sdf_external)
-            some_point_does_not_know_his_value = x_some_point_does_not_know_his_value or y_some_point_does_not_know_his_value or z_some_point_does_not_know_his_value
+            for p in processes:
+                p.join()
+
+            # point_sdf_internal = self.max_set(self.max_set(x_point_sdf_internal, y_point_sdf_internal), z_point_sdf_internal)
+            # point_sdf_external = self.min_set(self.min_set(x_point_sdf_external, y_point_sdf_external), z_point_sdf_external)
+            # some_point_does_not_know_his_value = x_some_point_does_not_know_his_value or y_some_point_does_not_know_his_value or z_some_point_does_not_know_his_value
+            point_sdf_internal = self.max_set(self.max_set(point_sdf_internal_queue.get(), point_sdf_internal_queue.get()), point_sdf_internal_queue.get())
+            point_sdf_external = self.min_set(self.min_set(point_sdf_external_queue.get(), point_sdf_external_queue.get()), point_sdf_external_queue.get())
+            some_point_does_not_know_his_value = some_point_does_not_know_his_value_queue.get() or some_point_does_not_know_his_value_queue.get() or some_point_does_not_know_his_value_queue.get()
 
             points_with_min_distance = self._get_points_with_min_distance(some_point_does_not_know_his_value, point_sdf_external, point_sdf_internal)
             if( points_with_min_distance != None ):
                 return points_with_min_distance
             level += 1
    
-    def get_distance_to_different_value_plane(self, i_interval, j_interval, k_interval, point):
+    def get_distance_to_different_value_plane(self, i_interval, j_interval, k_interval, point,
+                                              point_sdf_internal_queue,
+                                              point_sdf_external_queue,
+                                              some_point_does_not_know_his_value_queue):
         point_sdf_internal = set() #-float("inf") # TODO: setearle un valor inicial, sino el min_set y max_set van a tener problemas
         point_sdf_external = set()
         some_point_does_not_know_his_value = False
@@ -48,6 +91,9 @@ class DistanceFinderStrategy:
                         else:
                             some_point_does_not_know_his_value, point_sdf_external, point_sdf_internal = self._verfy_if_some_point_does_not_know_his_value(i, j, k, point_sdf_external, point_sdf_internal, some_point_does_not_know_his_value)
 
+        point_sdf_internal_queue.put(point_sdf_internal)
+        point_sdf_external_queue.put(point_sdf_external)
+        some_point_does_not_know_his_value_queue.put(some_point_does_not_know_his_value)
         return point_sdf_internal, point_sdf_external, some_point_does_not_know_his_value
 
     def set_sdf_values(self, x, y, z, points):
@@ -55,17 +101,38 @@ class DistanceFinderStrategy:
         self.sdf[x][y][z] = self._distance_plus_sdf_for_different_value(next(iter(points)), (x,y,z))
         # print("set_sdf_to_internal_values: points: {} - level: {} - sdf[{}]: {}".format(points, level, [x,y,z], sdf[x][y][z]))
         level -= 1
+        print("Set Values")
         while level>0: # while  points is empty
-            # planos z
-            z_points_to_recalculate = self.set_sdf_values_by_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], [x,y,z], points)
+            processes = []
+            # planos z # z_points_to_recalculate = self.set_sdf_values_by_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], [x,y,z], points)
+            planeZ = multiprocessing.Process(target=self.set_sdf_values_by_plane,
+                                             args=(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], [x,y,z], points))
+            processes.append(planeZ)
+            planeZ.start()
+            print("End X")
 
             # planos y
-            y_points_to_recalculate = self.set_sdf_values_by_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), [x,y,z], points)
+            # y_points_to_recalculate = self.set_sdf_values_by_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), [x,y,z], points)
+            planeY = multiprocessing.Process(target=self.set_sdf_values_by_plane,
+                                             args=(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), [x,y,z], points))
+            processes.append(planeY)
+            planeY.start()
+            print("End Y")
 
             # planos x
-            x_points_to_recalculate = self.set_sdf_values_by_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), [x,y,z], points)
+            # x_points_to_recalculate = self.set_sdf_values_by_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), [x,y,z], points)
+            planeX = multiprocessing.Process(target=self.set_sdf_values_by_plane,
+                                             args=([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), [x,y,z], points))
+            print("End Z")
+            processes.append(planeX)
+            planeX.start()
 
-            points_to_recalculate = z_points_to_recalculate.union(y_points_to_recalculate).union(x_points_to_recalculate) # TODO: recalcularlos
+            #points_to_recalculate = z_points_to_recalculate.union(y_points_to_recalculate).union(x_points_to_recalculate) # TODO: recalcularlos
+            for p in processes:
+                p.join()
+
+            print("End Todo")
+
             level -= 1
 
     def set_sdf_values_by_plane(self, i_interval, j_interval, k_interval, point, points):
