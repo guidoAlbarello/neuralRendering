@@ -1,37 +1,58 @@
 uniform vec3 iResolution;
 uniform float iTime;
 
-/**
- * Part 2 Challenges
- * - Change the diffuse color of the sphere to be blue
- * - Change the specual color of the sphere to be green
- * - Make one of the lights pulse by having its intensity vary over time
- * - Add a third light to the scene
- */
-
 const int MAX_MARCHING_STEPS = 255;
 const float MIN_DIST = 0.0;
-const float MAX_DIST = 100.0;
+const float MAX_DIST = 1000.0;
 const float EPSILON = 0.0001;
+
+const int MAX_SPHERES_PER_OCTANT = 50;
+
+const int MAX_AMOUNT_CHILDREN_PER_NODE = 8;
+const int TREE_ROOT_INDEX = 0;
+// Use textures to build bigger trees.
+const int MAX_TREE_DEPTH = 0;
+const int MAX_TREE_NODES_PROCESSING = MAX_AMOUNT_CHILDREN_PER_NODE * MAX_TREE_DEPTH;
+
+const int AMOUNT_OF_NODES_IN_TREE = 1;
+// TODO: Assume complete for now.
+const int AMOUNT_OF_LEAVES_IN_TREE = 1;
+
+struct Node {
+    vec3 bbox;
+    vec3 centerPosition;
+    int depth;
+};
+
+// Memory array Distribution
+// level 0 :  [0 root]
+// level 1 :  [0.{0-7} hijos]
+// level2  :  [0.0.{0-7} hijos] [0.1.{0-7} hijos] [0.2.{0-7} hijos] [0.3.{0-7} hijos] [0.4.{0-7} hijos] [0.5.{0-7} hijos] [0.6.{0-7} hijos] [0.7.{{0-7} hijos] 
+// level3  :
+// [0.0.0.{0-7} hijos] [0.0.1.{0-7} hijos] [0.0.2.{0-7} hijos] [0.0.3.{0-7} hijos] [0.0.4.{0-7} hijos] [0.0.5.{0-7} hijos] [0.0.6.{0-7} hijos] [0.0.7.{0-7} hijos]
+// [0.1.0.{0-7} hijos] [0.1.1.{0-7} hijos] [0.1.2.{0-7} hijos] [0.1.3.{0-7} hijos] [0.1.4.{0-7} hijos] [0.1.5.{0-7} hijos] [0.1.6.{0-7} hijos] [0.1.7.{0-7} hijos]
+// [0.2.0.{0-7} hijos] [0.2.1.{0-7} hijos] [0.2.2.{0-7} hijos] [0.2.3.{0-7} hijos] [0.2.4.{0-7} hijos] [0.2.5.{0-7} hijos] [0.2.6.{0-7} hijos] [0.2.7.{0-7} hijos]
+// [0.3.0.{0-7} hijos] [0.3.1.{0-7} hijos] [0.3.2.{0-7} hijos] [0.3.3.{0-7} hijos] [0.3.4.{0-7} hijos] [0.3.5.{0-7} hijos] [0.3.6.{0-7} hijos] [0.3.7.{0-7} hijos]
+// [0.4.0.{0-7} hijos] [0.4.1.{0-7} hijos] [0.4.2.{0-7} hijos] [0.4.3.{0-7} hijos] [0.4.4.{0-7} hijos] [0.4.5.{0-7} hijos] [0.4.6.{0-7} hijos] [0.4.7.{0-7} hijos]
+// [0.5.0.{0-7} hijos] [0.5.1.{0-7} hijos] [0.5.2.{0-7} hijos] [0.5.3.{0-7} hijos] [0.5.4.{0-7} hijos] [0.5.5.{0-7} hijos] [0.5.6.{0-7} hijos] [0.5.7.{0-7} hijos]
+// [0.6.0.{0-7} hijos] [0.6.1.{0-7} hijos] [0.6.2.{0-7} hijos] [0.6.3.{0-7} hijos] [0.6.4.{0-7} hijos] [0.6.5.{0-7} hijos] [0.6.6.{0-7} hijos] [0.6.7.{0-7} hijos]
+// [0.7.0.{0-7} hijos] [0.7.1.{0-7} hijos] [0.7.2.{0-7} hijos] [0.7.3.{0-7} hijos] [0.7.4.{0-7} hijos] [0.7.5.{0-7} hijos] [0.7.6.{0-7} hijos] [0.7.7.{0-7} hijos]
+
+// We need to use the same array name as struct to be compliant with three.js framework. Otherwise we can't pass array of structures.
+uniform Node node[AMOUNT_OF_NODES_IN_TREE+8];
+uniform vec4 spheres[MAX_SPHERES_PER_OCTANT];
 
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;
  */
 
-float cubeSDF(vec3 p) {
-    vec3 d = abs(p) - vec3(1.0, 1.0, 1.0);
+float sdBox(vec3 p, vec3 s) {
+    vec3 d = abs(p) - s;
     return min(max(d.x,max(d.y,d.z)),0.0) + length(max(d,0.0));
 }
 
 float sphereSDF(vec3 p, vec3 pos, float r) {
-    return length(pos - p) - r; 
-}
-
-
-float smoothUnion(float a, float b) {
-    float k = 0.1;
-    float h = max( k-abs(a-b), 0.0 )/k;
-    return min( a, b ) - h*h*k*(1.0/4.0); 
+    return length(p - pos) - r; 
 }
 
 float vmax(vec3 v){
@@ -41,21 +62,10 @@ float vmax(vec3 v){
 float sdf_boxcheap(vec3 c, vec3 p, vec3 s){
      return vmax(abs(p-c) - s);
 }
-
-float soil0SDF(vec3 inputPoint) {
-return smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.05, 0.15000000000000002), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.1, 0.0), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.1, 0.05), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.0, 0.25), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.05, 0.1), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.0, 0.2), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.0, 0.2), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.1, 0.0), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.0, 0.15000000000000002), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.0, 0.15000000000000002), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.1, 0.1), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.1, 0.05), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.0, 0.1), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.0, 0.25), 0.04999999999999999), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.05, 0.05), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.0, 0.2), 0.05), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.05, 0.15000000000000002), 0.0707106781186547), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.0, 0.0), 0.07071067811865471), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.0, 0.2), 0.07071067811865471), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.05, 0.05), 0.07071067811865471), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.05, 0.15000000000000002), 0.07071067811865475), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.0, 0.1), 0.07071067811865475), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.0, 0.15000000000000002), 0.07071067811865475), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.05, 0.15000000000000002), 0.07071067811865475), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.0, 0.1), 0.07071067811865475), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.0, 0.05), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.0, 0.05), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.05, 0.0), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.05, 0.05), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.05, 0.05), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.05, 0.05), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.05, 0.0), 0.07071067811865478), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.0, 0.05), 0.08660254037844384), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.05, 0.1), 0.1), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.05, 0.0), 0.1), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.05, 0.1), 0.1), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.0, 0.15000000000000002), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.0, 0.15000000000000002), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.0, 0.15000000000000002), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.0, 0.05), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.0, 0.05), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.0, 0.0), 0.1118033988749895), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.0, 0.0), 0.1118033988749895), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.0, 0.1), 0.12247448713915887), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.0, 0.0), 0.12247448713915893), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.0, 0.1), 0.14142135623730953), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.0, 0.0), 0.14142135623730953), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.0, 0.0), 0.14142135623730953), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.0, 0.0), 0.14142135623730953), sphereSDF(inputPoint, vec3(0.7000000000000001, 0.0, 0.0), 0.15))))))))))))))))))))))))))))))))))))))))))))))))));
-}
-
-float soil1SDF(vec3 inputPoint) {
-return smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.0, 0.25), 0.1), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.15000000000000002, 0.15000000000000002), 0.10000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.0, 0.35000000000000003), 0.10000000000000003), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.0, 0.35000000000000003), 0.10000000000000003), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.25, 0.05), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.2, 0.15000000000000002), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.2, 0.1), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.15000000000000002, 0.15000000000000002), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.2, 0.1), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.0, 0.4), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.6000000000000001, 0.15000000000000002, 0.2), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.15000000000000002, 0.2), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.15000000000000002, 0.2), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.2, 0.15000000000000002), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.25, 0.1), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.2, 0.15000000000000002), 0.11180339887498944), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.25, 0.0), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.25, 0.0), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.30000000000000004, 0.0), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.30000000000000004, 0.0), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.2, 0.05), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.25, 0.0), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.2, 0.2), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.0, 0.30000000000000004), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.25, 0.0), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.0, 0.4), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.25, 0.0), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.25, 0.0), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.0, 0.25), 0.11180339887498948), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.15000000000000002, 0.25), 0.1118033988749895), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.15000000000000002, 0.1), 0.1118033988749895), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.05, 0.25), 0.1118033988749895), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.2, 0.1), 0.1118033988749895), smoothUnion(sphereSDF(inputPoint, vec3(0.2, 0.1, 0.2), 0.1118033988749895), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.15000000000000002, 0.15000000000000002), 0.11180339887498952), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.15000000000000002, 0.1), 0.11180339887498952), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.15000000000000002, 0.15000000000000002), 0.11180339887498952), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.15000000000000002, 0.15000000000000002), 0.11180339887498952), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.1, 0.30000000000000004), 0.11180339887498952), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.15000000000000002, 0.15000000000000002), 0.11180339887498952), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.15000000000000002, 0.15000000000000002), 0.12247448713915887), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.25, 0.05), 0.1224744871391589), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.2, 0.1), 0.12247448713915893), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.1, 0.2), 0.12247448713915893), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.25, 0.05), 0.14142135623730948), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.25, 0.0), 0.14999999999999994), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.25, 0.0), 0.15), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.25, 0.0), 0.15), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.25, 0.0), 0.15811388300841894), sphereSDF(inputPoint, vec3(0.0, 0.0, 0.30000000000000004), 0.17320508075688773))))))))))))))))))))))))))))))))))))))))))))))))));
-}
-
-float soil2SDF(vec3 inputPoint) {
-return smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.55, 0.35000000000000003), 0.20615528128088295), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.6000000000000001, 0.95), 0.20615528128088295), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.30000000000000004, 0.5), 0.20615528128088295), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.55, 0.25), 0.20615528128088295), smoothUnion(sphereSDF(inputPoint, vec3(0.8, 0.0, 0.95), 0.20615528128088298), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.05, 0.9), 0.20615528128088298), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.05, 0.95), 0.20615528128088298), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.1, 0.95), 0.20615528128088298), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.55, 0.8500000000000001), 0.20615528128088298), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.55, 0.95), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.45, 0.5), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.4, 0.55), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.0, 0.8), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.25, 0.5), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.45, 0.4), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.45, 0.5), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.45, 0.4), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.4, 0.55), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.45, 0.45), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.45, 0.35000000000000003), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.45, 0.65), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.15000000000000002, 0.5, 0.30000000000000004), 0.20615528128088306), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.65, 0.30000000000000004), 0.2061552812808831), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.30000000000000004, 0.55), 0.2061552812808831), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.65, 0.30000000000000004), 0.2061552812808831), smoothUnion(sphereSDF(inputPoint, vec3(0.65, 0.0, 0.75), 0.21213203435596426), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.6000000000000001, 0.95), 0.21213203435596426), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.45, 0.4), 0.21213203435596428), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.5, 0.4), 0.21213203435596428), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.0, 0.8500000000000001), 0.21213203435596428), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.45, 0.35000000000000003), 0.21213203435596428), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.55, 0.30000000000000004), 0.2121320343559643), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.0, 0.9), 0.21794494717703367), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.5, 0.35000000000000003), 0.21794494717703367), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.55, 0.30000000000000004), 0.21794494717703372), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.55, 0.30000000000000004), 0.21794494717703372), smoothUnion(sphereSDF(inputPoint, vec3(0.1, 0.6000000000000001, 0.95), 0.22360679774997894), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.0, 0.8), 0.22360679774997896), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.5, 0.35000000000000003), 0.22360679774997896), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.55, 0.35000000000000003), 0.22360679774997896), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.45, 0.45), 0.22360679774997896), smoothUnion(sphereSDF(inputPoint, vec3(0.05, 0.6000000000000001, 0.30000000000000004), 0.22912878474779194), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.5, 0.35000000000000003), 0.229128784747792), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.45, 0.4), 0.229128784747792), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.0, 0.8500000000000001), 0.229128784747792), smoothUnion(sphereSDF(inputPoint, vec3(0.75, 0.0, 0.95), 0.2345207879911715), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.6000000000000001, 0.30000000000000004), 0.24494897427831774), smoothUnion(sphereSDF(inputPoint, vec3(0.7000000000000001, 0.0, 0.9), 0.2449489742783178), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.8, 0.0), 0.291547594742265), sphereSDF(inputPoint, vec3(0.2, 0.1, 0.95), 0.4582575694955841))))))))))))))))))))))))))))))))))))))))))))))))));
-}
-
-float soil3SDF(vec3 inputPoint) {
-return smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.65, 0.35000000000000003), 0.15), smoothUnion(sphereSDF(inputPoint, vec3(0.30000000000000004, 0.95, 0.7000000000000001), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.95, 0.65), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.8500000000000001, 0.2), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.35000000000000003, 0.95, 0.7000000000000001), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.8, 0.25), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.95, 0.25), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.8, 0.30000000000000004), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.75, 0.30000000000000004), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.4, 0.95, 0.7000000000000001), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.75, 0.35000000000000003), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.75, 0.4), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.7000000000000001, 0.9), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.25, 0.95, 0.7000000000000001), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.7000000000000001, 0.9), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.8500000000000001, 0.7000000000000001, 0.95), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.7000000000000001, 0.35000000000000003), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.8, 0.35000000000000003), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.8500000000000001, 0.95), 0.15000000000000002), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.8500000000000001, 0.2), 0.15000000000000008), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.9, 0.2), 0.15811388300841894), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.9, 0.2), 0.15811388300841894), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.7000000000000001, 0.95), 0.15811388300841894), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.8500000000000001, 0.25), 0.15811388300841894), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.75, 0.25), 0.15811388300841894), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.95, 0.2), 0.15811388300841894), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.7000000000000001, 0.9), 0.15811388300841903), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.8, 0.95), 0.15811388300841903), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.8500000000000001, 0.30000000000000004), 0.15811388300841903), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.8, 0.25), 0.16583123951776998), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.9, 0.25), 0.16583123951776998), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.9, 0.2), 0.16583123951776998), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.7000000000000001, 0.95), 0.16583123951777004), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.65, 0.35000000000000003), 0.16583123951777004), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.7000000000000001, 0.30000000000000004), 0.16583123951777007), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.7000000000000001, 0.30000000000000004), 0.17320508075688773), smoothUnion(sphereSDF(inputPoint, vec3(0.55, 0.95, 0.2), 0.18027756377319948), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.95, 0.30000000000000004), 0.18027756377319948), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.95, 0.2), 0.18027756377319948), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.9, 0.30000000000000004), 0.18027756377319948), smoothUnion(sphereSDF(inputPoint, vec3(0.9, 0.75, 0.95), 0.18027756377319956), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.7000000000000001, 0.35000000000000003), 0.18708286933869706), smoothUnion(sphereSDF(inputPoint, vec3(0.45, 0.95, 0.25), 0.18708286933869708), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.8500000000000001, 0.25), 0.1870828693386971), smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.75, 0.30000000000000004), 0.2), smoothUnion(sphereSDF(inputPoint, vec3(0.0, 0.95, 0.6000000000000001), 0.2), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.8500000000000001, 0.95), 0.20000000000000007), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.8, 0.95), 0.2061552812808831), smoothUnion(sphereSDF(inputPoint, vec3(0.95, 0.75, 0.95), 0.21213203435596426), sphereSDF(inputPoint, vec3(0.8, 0.95, 0.55), 0.3937003937005905))))))))))))))))))))))))))))))))))))))))))))))))));
+float smoothUnion(float a, float b) {
+    float k = 0.1;
+    float h = max( k-abs(a-b), 0.0 )/k;
+    return min( a, b ) - h*h*k*(1.0/4.0); 
 }
 
 
@@ -72,19 +82,111 @@ return smoothUnion(sphereSDF(inputPoint, vec3(0.5, 0.65, 0.35000000000000003), 0
 * negative indicating inside.
  
 */
- 
-float sceneSDF(vec3 samplePoint) {
 
-    float dist = max(min(min(min(soil0SDF(samplePoint), soil1SDF(samplePoint)), soil2SDF(samplePoint)), soil3SDF(samplePoint)), cubeSDF(samplePoint));
-    
-    dist = max(dist, -sphereSDF(samplePoint, vec3(sin(iTime), cos(iTime),sin(iTime)), sin(0.23*3.0*iTime)));
-    
-
+float sdfListOfSpheres(vec3 samplePoint, vec4[MAX_SPHERES_PER_OCTANT] spheres) {
+    float dist = sphereSDF(samplePoint, spheres[0].xyz, spheres[0].w);
+    for (int i = 1; i< MAX_SPHERES_PER_OCTANT; i++) {
+        if (spheres[i].w == 0.0) {
+            // Load spheres in multiple of 32. So that this breaks for the next 32 blocks.
+            break;
+        }
+        dist = smoothUnion(sphereSDF(samplePoint, spheres[i].xyz, spheres[i].w), dist);
+    }
     
     return dist;
-    
 }
 
+vec2 intersectAABB(vec3 rayOrigin, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
+    vec3 tMin = (boxMin - rayOrigin) / rayDir;
+    vec3 tMax = (boxMax - rayOrigin) / rayDir;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar = min(min(t2.x, t2.y), t2.z);
+    return vec2(tNear, tFar);
+}
+
+
+// Se puede agregar una aceleracion. Si la distancia en el mismo bloque en la pasada anterior es menor a la actual
+// entonces nos estamos alejando, sabemos que ese bloque no lo vamos a colisionary podemos pasar al proximo. 
+// SI no hace falta recorrer el arbol en cada paso del raymarching, recordar en el actual y cual es el que sigue 
+// en caso de error.
+// HACE FALTA CHEQUEAR QUE AL SUMAR DISTANCIA NO SE VAYA DEL CUADRADO. COMO MUCHO LLEGA A LA FRONTERA.
+// Guardamos el stack desde la menor colision de distancias.
+float treeSdf(vec3 samplePoint, in float minDist, inout vec3 color, vec3 eye, vec3 dir) {
+    int stack[MAX_TREE_NODES_PROCESSING+1];
+    int stack_pointer = -1;
+    stack[++stack_pointer] = TREE_ROOT_INDEX;
+    int level = 0;
+    while (stack_pointer >= 0) {
+        int currentIndex = stack[stack_pointer--];
+        Node currentNode = node[currentIndex];
+        if (sdBox(samplePoint - currentNode.centerPosition, currentNode.bbox) < minDist) {           
+            if (currentNode.depth == MAX_TREE_DEPTH) {
+                // Offset all leaves to 0, node indexes to fetch sdfs.
+                minDist = sdfListOfSpheres(samplePoint, spheres/*nodeSdf[currentIndex -  (AMOUNT_OF_NODES_IN_TREE - AMOUNT_OF_LEAVES_IN_TREE)].spheres*/);
+            } else {
+                // Maybe do some dynamic programming here.
+                // Or use planes alignment to identify matches.
+                vec2 intersectedChildren[MAX_AMOUNT_CHILDREN_PER_NODE];
+                int amountIntersectedChildren = 0;
+                for (int i = 0; i < MAX_AMOUNT_CHILDREN_PER_NODE; i++) {
+                    // Guard clause against conditional branching optimizations.
+                    if (currentNode.depth != MAX_TREE_DEPTH) {
+                        int childIndex = int(MAX_AMOUNT_CHILDREN_PER_NODE * currentIndex + 1 + i);
+                        Node child = node[childIndex];
+                        vec2 tNearTFar = intersectAABB(eye, dir, child.centerPosition - child.bbox, child.centerPosition + child.bbox);
+                    
+                        // If ray intersects cube add it to traversable children.
+                        // When tNear is greater than tFar there's no intersection.
+                        if (tNearTFar.x <= tNearTFar.y) {
+                            intersectedChildren[amountIntersectedChildren++] = vec2(tNearTFar.x, float(childIndex));
+                        }
+                    }
+                }
+
+                // Add null terminated vector.
+                if (amountIntersectedChildren < MAX_AMOUNT_CHILDREN_PER_NODE) {
+                    intersectedChildren[amountIntersectedChildren] = vec2(0.0, -1.0);
+                }
+
+                // Totally unproductive bubble sorte. It's french.
+                // Order children in descending order based on tNear distance.
+                for (int i = 0; i < MAX_AMOUNT_CHILDREN_PER_NODE; i++) {
+                    if (intersectedChildren[i].y == -1.0) {
+                        break;
+                    }
+                    vec2 aux;                   
+                    for (int j = i; j < MAX_AMOUNT_CHILDREN_PER_NODE; j++) {
+                        if (intersectedChildren[j].y == -1.0) {
+                            break;
+                        }
+                        if (intersectedChildren[i].x < intersectedChildren[j].x) {
+                            aux = intersectedChildren[i];
+                            intersectedChildren[i] = intersectedChildren[j];
+                            intersectedChildren[j] = aux;
+                        }
+                    }
+                }
+                
+                // Push neighbors to stack.
+                for (int i = 0; i < MAX_AMOUNT_CHILDREN_PER_NODE; i++) {
+                    if (intersectedChildren[i].y == -1.0) {
+                        break;
+                    }
+                    stack[++stack_pointer] = int(intersectedChildren[i].y);
+                }
+            }
+        }
+    }
+
+    return minDist;
+}
+
+float sceneSDF(vec3 samplePoint, inout vec3 color, vec3 eye, vec3 dir) {
+    float minDist = MAX_DIST;
+    return treeSdf(samplePoint, minDist, color, eye, dir);
+}
 
 /**
  * Return the shortest distance from the eyepoint to the scene surface along
@@ -96,10 +198,10 @@ float sceneSDF(vec3 samplePoint) {
  * start: the starting distance away from the eye
  * end: the max distance away from the ey to march before giving up
  */
-float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end) {
+float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end, inout vec3 color_diffuse) {
     float depth = start;
     for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
-        float dist = sceneSDF(eye + depth * marchingDirection);
+        float dist = sceneSDF((eye + depth * marchingDirection), color_diffuse, eye, marchingDirection);
         if (dist < EPSILON) {
 			return depth;
         }
@@ -128,11 +230,12 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
 /**
  * Using the gradient of the SDF, estimate the normal on the surface at point p.
  */
-vec3 estimateNormal(vec3 p) {
+vec3 estimateNormal(vec3 p, vec3 eye, vec3 dir) {
+    vec3 color = vec3(0.0, 0.0, 0.0);
     return normalize(vec3(
-        sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
-        sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
-        sceneSDF(vec3(p.x, p.y, p.z  + EPSILON)) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON))
+        sceneSDF(vec3(p.x + EPSILON, p.y, p.z), color, eye, dir) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z), color, eye, dir),
+        sceneSDF(vec3(p.x, p.y + EPSILON, p.z), color, eye, dir) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z), color, eye, dir),
+        sceneSDF(vec3(p.x, p.y, p.z  + EPSILON), color, eye, dir) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON), color, eye, dir)
     ));
 }
 
@@ -152,9 +255,9 @@ vec3 estimateNormal(vec3 p) {
  *
  * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
  */
-vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
+vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye, vec3 dir, 
                           vec3 lightPos, vec3 lightIntensity) {
-    vec3 N = estimateNormal(p);
+    vec3 N = estimateNormal(p, eye, dir);
     vec3 L = normalize(lightPos - p);
     vec3 V = normalize(eye - p);
     vec3 R = normalize(reflect(-L, N));
@@ -188,27 +291,17 @@ vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
  *
  * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
  */
-vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye) {
+vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye, vec3 dir) {
     const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
     vec3 color = ambientLight * k_a;
     
-    vec3 light1Pos = vec3(4.0 * sin(iTime),
-                          2.0,
-                          4.0 * cos(iTime));
-    vec3 light1Intensity = vec3(0.4, 0.4, 0.4);
+    vec3 light1Pos = eye;
+    vec3 light1Intensity = vec3(1.0, 1.0, 1.0);
     
-    color += phongContribForLight(k_d, k_s, alpha, p, eye,
+    color += phongContribForLight(k_d, k_s, alpha, p, eye, dir,
                                   light1Pos,
                                   light1Intensity);
     
-    vec3 light2Pos = vec3(2.0 * sin(0.37 * iTime),
-                          2.0 * cos(0.37 * iTime),
-                          2.0);
-    vec3 light2Intensity = vec3(0.4, 0.4, 0.4);
-    
-    color += phongContribForLight(k_d, k_s, alpha, p, eye,
-                                  light2Pos,
-                                  light2Intensity);    
     return color;
 }
 
@@ -229,7 +322,6 @@ mat4 viewMatrixs(vec3 eye, vec3 center, vec3 up) {
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 {
-
     float angle = iTime*0.5;
 
     mat3 rotation = mat3(
@@ -244,13 +336,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     vec3 dir = normalize(rotation*rayDirection(45.0, iResolution.xy, fragCoord));
 
-    vec3 eye = rotation*vec3(0.0,0.0,10.0);
+    vec3 eye = rotation*vec3(0.0,0.0,164.0);
 
-
-
-    float dist = shortestDistanceToSurface(eye, dir, MIN_DIST, MAX_DIST);
-
-    
+    vec3 K_d = vec3(0.7, 0.7, 0.7);
+    float dist = shortestDistanceToSurface(eye, dir, MIN_DIST, MAX_DIST, K_d);
 
     if (dist > MAX_DIST - EPSILON) {
 
@@ -262,57 +351,23 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     }
 
-
-
     // The closest point on the surface to the eyepoint along the view ray
 
     vec3 p = eye + dir * dist;
 
+    vec3 K_a = vec3(0.5, 0.5, 0.5);
+
+    vec3 K_s = vec3(0.0, 0.0, 0.0);
+
+    float shininess = 0.1;
 
 
-    vec3 K_d = vec3(0.7, 0.7, 0.7);
-
-    
-    float sdf0 = soil0SDF(p);
-    float sdf1 = soil1SDF(p);
-    float sdf2 = soil2SDF(p);
-    float sdf3 = soil3SDF(p);
-    float minSdf = min(min(min(min(sdf0, sdf0), sdf1), sdf2), sdf3);
-    
-    if (abs(sdf0 - minSdf) < 0.1) {
-        K_d = vec3(72.0/255.0,209.0/255.0,204.0/255.0);
-    }
-    if (abs(sdf1 - minSdf) < 0.1) {
-        K_d = vec3(124.0/255.0,252.0/255.0,0.0);
-    }
-    if (abs(sdf2 - minSdf) < 0.1) {
-        K_d = vec3(1.0,1.0,161.0/255.0);
-    }
-    if (abs(sdf3 - minSdf) < 0.1) {
-        K_d = vec3(152.0/255.0,116.0/255.0,86.0/255.0);
-    }
-
-
-    vec3 K_a = vec3(0.2, 0.2, 0.2);
-
-    vec3 K_s = vec3(1.0, 1.0, 1.0);
-
-    float shininess = 1.0;
-
-    
-
-    vec3 color = K_d;//phongIllumination(K_a, K_d, K_s, shininess, p, eye);
-
-    
-
-    fragColor = vec4(color * length(p), 1.0);
-
+    vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, eye, dir);
+    fragColor = vec4(color  , 1.0);
 }
 
 
 
 void main() {
-
    mainImage(gl_FragColor, gl_FragCoord.xy);
-
 }
