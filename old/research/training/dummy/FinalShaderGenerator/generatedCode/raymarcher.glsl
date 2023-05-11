@@ -11,12 +11,12 @@ const int MAX_SPHERES_PER_OCTANT = 20;
 const int MAX_AMOUNT_CHILDREN_PER_NODE = 8;
 const int TREE_ROOT_INDEX = 0;
 // Use textures to build bigger trees.
-const int MAX_TREE_DEPTH = 0;
+const int MAX_TREE_DEPTH = 1;
 const int MAX_TREE_NODES_PROCESSING = MAX_AMOUNT_CHILDREN_PER_NODE * MAX_TREE_DEPTH;
 
-const int AMOUNT_OF_NODES_IN_TREE = 1;
+const int AMOUNT_OF_NODES_IN_TREE = 9;
 // TODO: Assume complete for now.
-const int AMOUNT_OF_LEAVES_IN_TREE = 1;
+const int AMOUNT_OF_LEAVES_IN_TREE = 8;
 
 struct Node {
     vec3 bbox;
@@ -26,16 +26,10 @@ struct Node {
 
 struct LeafData {
     int start_sdf1;
-    int end_sdf1;
-
     int start_sdf2;
-    int end_sdf2;
-
     int start_sdf3;
-    int end_sdf3;
-
     int start_sdf4;
-    int end_sdf4;
+    int end_sdf;
 };
 
 const vec3 SDF1_color = vec3(0.0, 1.0, 239.0/255.0);
@@ -60,7 +54,7 @@ const vec3 SDF4_color = vec3(159.0/255.0, 129.0/255.0, 112.0/255.0);
 // We need to use the same array name as struct to be compliant with three.js framework. Otherwise we can't pass array of structures.
 uniform Node node[AMOUNT_OF_NODES_IN_TREE];
 uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
-uniform vec4 spheres[80];
+uniform vec4 spheres[320];
 
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;
@@ -83,7 +77,7 @@ float sdf_boxcheap(vec3 c, vec3 p, vec3 s){
      return vmax(abs(p-c) - s);
 }
 float smoothUnion(float a, float b) {
-    float k = 0.1;
+    float k = 10.0;
     float h = max( k-abs(a-b), 0.0 )/k;
     return min( a, b ) - h*h*k*(1.0/4.0); 
 }
@@ -114,13 +108,17 @@ float sdBoxFrame( vec3 p, vec3 b, float e )
 
 
 float sdfListOfSpheres(vec3 samplePoint, int start, int end) {
+    // If no spheres for this sdf then return empty space.
+    if (start == end) { return MAX_DIST;}
+
+    // Iterate over spheres sdf.
     float dist = sphereSDF(samplePoint, spheres[start].xyz, spheres[start].w);
     for (int i = 1; i< MAX_SPHERES_PER_OCTANT; i++) {
-        if (start + i >= end) {
+        int idx = i+start;
+        if (idx >= end) {
             // Load spheres in multiple of 32. So that this breaks for the next 32 blocks.
             break;
         }
-        int idx = i+start;
         dist = smoothUnion(sphereSDF(samplePoint, spheres[idx].xyz, spheres[idx].w), dist);
     }
     
@@ -128,10 +126,10 @@ float sdfListOfSpheres(vec3 samplePoint, int start, int end) {
 }
 
 float calculateSdfForBlock(vec3 samplePoint, LeafData leaf, inout vec3 color) {
-    float dist1 = sdfListOfSpheres(samplePoint, leaf.start_sdf1, leaf.end_sdf1);
-    float dist2 = sdfListOfSpheres(samplePoint, leaf.start_sdf2, leaf.end_sdf2);
-    float dist3 = sdfListOfSpheres(samplePoint, leaf.start_sdf3, leaf.end_sdf3);
-    float dist4 = sdfListOfSpheres(samplePoint, leaf.start_sdf4, leaf.end_sdf4);
+    float dist1 = sdfListOfSpheres(samplePoint, leaf.start_sdf1, leaf.start_sdf2);
+    float dist2 = sdfListOfSpheres(samplePoint, leaf.start_sdf2, leaf.start_sdf3);
+    float dist3 = sdfListOfSpheres(samplePoint, leaf.start_sdf3, leaf.start_sdf4);
+    float dist4 = sdfListOfSpheres(samplePoint, leaf.start_sdf4, leaf.end_sdf);
 
     float dist = smoothUnion(dist1, dist2);
     dist = smoothUnion(dist3, dist);
@@ -325,8 +323,8 @@ vec3 estimateNormal(vec3 p, vec3 eye, vec3 dir) {
  */
 vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye, vec3 dir, 
                           vec3 lightPos, vec3 lightIntensity) {
-    vec3 N = estimateNormal(p, eye, dir);
     vec3 L = normalize(lightPos - p);
+    vec3 N = estimateNormal(p, eye, L);
     vec3 V = normalize(eye - p);
     vec3 R = normalize(reflect(-L, N));
     

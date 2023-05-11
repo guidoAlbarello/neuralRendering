@@ -24,14 +24,6 @@ struct Node {
     int depth;
 };
 
-struct LeafData {
-    int start_sdf1;
-    int start_sdf2;
-    int start_sdf3;
-    int start_sdf4;
-    int end_sdf;
-};
-
 const vec3 SDF1_color = vec3(${SDF1_COLOR});
 const vec3 SDF2_color = vec3(${SDF2_COLOR});
 const vec3 SDF3_color = vec3(${SDF3_COLOR});
@@ -53,8 +45,7 @@ const vec3 SDF4_color = vec3(${SDF4_COLOR});
 
 // We need to use the same array name as struct to be compliant with three.js framework. Otherwise we can't pass array of structures.
 uniform Node node[AMOUNT_OF_NODES_IN_TREE];
-uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
-uniform vec4 spheres[${TOTAL_SPHERES}];
+uniform sampler2D spheres;
 
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;
