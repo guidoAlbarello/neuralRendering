@@ -1,6 +1,9 @@
 import numpy as np
 import noise
 import pandas as pd
+import multiprocessing
+# from multiprocessing import Process, Manager
+
 def generate_terrain(shape):
     print("generate_3D_terrain")
     scale = 100.0
@@ -41,13 +44,9 @@ def generate_terrain(shape):
 # con 20: Calcular la sdf de una matrix tardo 455.0437340736389 segundos para el valor interno [0.0, 0.04]
 # con 30: Calcular la sdf de una matrix tardo 6490.835131883621 segundos para el valor interno [0.0, 0.04]
 
-x_total = 30
-y_total = 30
-z_total = 30
-shape = (x_total, y_total, z_total)
-sdf = np.zeros(shape)
-# sdf = [ [ [None] * x_total ] *y_total ] *z_total
-terrain = generate_terrain(shape)
+
+
+
 
 
 # def get_distance_to_NO_internal_value(x, y, z, internal_value):
@@ -128,7 +127,9 @@ def min_set(set1, set2): # set = {([x,y,z], sdf_value), ([x,y,z], sdf_value)}
 def is_internal_value(value_of_XYZ, internal_value):
     return internal_value[0] <= value_of_XYZ <= internal_value[1]
 
-def get_distance_to_NO_internal_value_plane(i_interval, j_interval, k_interval, internal_value, point):
+def get_distance_to_NO_internal_value_plane(i_interval, j_interval, k_interval, internal_value, point,
+                                            point_sdf_internal_queue, point_sdf_external_queue,
+                                            some_point_does_not_know_his_value_queue, sdf, terrain):
     point_sdf_internal = set() #-float("inf") # TODO: setearle un valor inicial, sino el min_set y max_set van a tener problemas
     point_sdf_external = set()
     some_point_does_not_know_his_value = False
@@ -152,23 +153,58 @@ def get_distance_to_NO_internal_value_plane(i_interval, j_interval, k_interval, 
                             sdf[i][j][k] = sdf_value
                             point_sdf_internal = max_set(point_sdf_internal, set([((i,j,k), sdf_value)]))
 
-    return point_sdf_internal, point_sdf_external, some_point_does_not_know_his_value
+    point_sdf_internal_queue.put(point_sdf_internal)
+    point_sdf_external_queue.put(point_sdf_external)
+    some_point_does_not_know_his_value_queue.put(some_point_does_not_know_his_value)
+    # return point_sdf_internal, point_sdf_external, some_point_does_not_know_his_value
 
-def get_distance_to_NO_internal_value(x, y, z, internal_value):
+def get_distance_to_NO_internal_value(x, y, z, internal_value, sdf, terrain):
     level = 1
     while True: # while  points is empty
+        point_sdf_internal_queue = multiprocessing.Queue()
+        point_sdf_external_queue = multiprocessing.Queue()
+        some_point_does_not_know_his_value_queue = multiprocessing.Queue()
+        processes = []
+
         # planos z
-        z_point_sdf_internal, z_point_sdf_external, z_some_point_does_not_know_his_value = get_distance_to_NO_internal_value_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], internal_value, [x,y,z])
+        planeZ = multiprocessing.Process(target=get_distance_to_NO_internal_value_plane,
+                         args=(range(x-level, x+level+1), range(y-level, y+level+1),
+                               [z-level, z+level], internal_value, [x,y,z],
+                               point_sdf_internal_queue,
+                               point_sdf_external_queue,
+                               some_point_does_not_know_his_value_queue, sdf, terrain))
+        processes.append(planeZ)
+        planeZ.start()
+        # z_point_sdf_internal, z_point_sdf_external, z_some_point_does_not_know_his_value = get_distance_to_NO_internal_value_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], internal_value, [x,y,z])
 
         # planos y
-        y_point_sdf_internal, y_point_sdf_external, y_some_point_does_not_know_his_value = get_distance_to_NO_internal_value_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), internal_value, [x,y,z])
+        planeY = multiprocessing.Process(target=get_distance_to_NO_internal_value_plane,
+                         args=(range(x-level, x+level+1), [y-level, y+level],
+                               range(z-level, z+level+1), internal_value, [x,y,z],
+                               point_sdf_internal_queue,
+                               point_sdf_external_queue,
+                               some_point_does_not_know_his_value_queue, sdf, terrain))
+        processes.append(planeY)
+        planeY.start()
+        # y_point_sdf_internal, y_point_sdf_external, y_some_point_does_not_know_his_value = get_distance_to_NO_internal_value_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), internal_value, [x,y,z])
 
         # planos x
-        x_point_sdf_internal, x_point_sdf_external, x_some_point_does_not_know_his_value = get_distance_to_NO_internal_value_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), internal_value, [x,y,z])
+        planeX = multiprocessing.Process(target=get_distance_to_NO_internal_value_plane,
+                         args=([x-level, x+level], range(y-level, y+level+1),
+                               range(z-level, z+level+1), internal_value, [x,y,z],
+                               point_sdf_internal_queue,
+                               point_sdf_external_queue,
+                               some_point_does_not_know_his_value_queue, sdf, terrain))
+        processes.append(planeX)
+        planeX.start()
+        # x_point_sdf_internal, x_point_sdf_external, x_some_point_does_not_know_his_value = get_distance_to_NO_internal_value_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), internal_value, [x,y,z])
 
-        point_sdf_internal = max_set(max_set(x_point_sdf_internal, y_point_sdf_internal), z_point_sdf_internal)
-        point_sdf_external = min_set(min_set(x_point_sdf_external, y_point_sdf_external), z_point_sdf_external)
-        some_point_does_not_know_his_value = x_some_point_does_not_know_his_value or y_some_point_does_not_know_his_value or z_some_point_does_not_know_his_value
+        for p in processes:
+            p.join()
+
+        point_sdf_internal = max_set(max_set(point_sdf_internal_queue.get(), point_sdf_internal_queue.get()), point_sdf_internal_queue.get())
+        point_sdf_external = min_set(min_set(point_sdf_external_queue.get(), point_sdf_external_queue.get()), point_sdf_external_queue.get())
+        some_point_does_not_know_his_value = some_point_does_not_know_his_value_queue.get() or some_point_does_not_know_his_value_queue.get() or some_point_does_not_know_his_value_queue.get()
 
         # si hay alguno internal con sdf value -1 --> devolver esos puntos
         if point_sdf_internal!=set() and next(iter(point_sdf_internal))[1] == -1:
@@ -181,7 +217,10 @@ def get_distance_to_NO_internal_value(x, y, z, internal_value):
 
 
 
-def get_distance_to_internal_value_plane(i_interval, j_interval, k_interval, internal_value, point):
+def get_distance_to_internal_value_plane(i_interval, j_interval, k_interval, internal_value, point,
+                                         point_sdf_internal_queue,
+                                         point_sdf_external_queue,
+                                         some_point_does_not_know_his_value_queue, sdf, terrain):
     point_sdf_internal = set() #-float("inf") # TODO: setearle un valor inicial, sino el min_set y max_set van a tener problemas
     point_sdf_external = set()
     some_point_does_not_know_his_value = False
@@ -205,23 +244,58 @@ def get_distance_to_internal_value_plane(i_interval, j_interval, k_interval, int
                         else:
                             some_point_does_not_know_his_value = True
 
-    return point_sdf_internal, point_sdf_external, some_point_does_not_know_his_value
+    point_sdf_internal_queue.put(point_sdf_internal)
+    point_sdf_external_queue.put(point_sdf_external)
+    some_point_does_not_know_his_value_queue.put(some_point_does_not_know_his_value)
+    # return point_sdf_internal, point_sdf_external, some_point_does_not_know_his_value
 
-def get_distance_to_internal_value(x, y, z, internal_value):
+def get_distance_to_internal_value(x, y, z, internal_value, sdf, terrain):
     level = 1
     while True: # while  points is empty
+        point_sdf_internal_queue = multiprocessing.Queue()
+        point_sdf_external_queue = multiprocessing.Queue()
+        some_point_does_not_know_his_value_queue = multiprocessing.Queue()
+        processes = []
+
         # planos z
-        z_point_sdf_internal, z_point_sdf_external, z_some_point_does_not_know_his_value = get_distance_to_internal_value_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], internal_value, [x,y,z])
+        planeZ = multiprocessing.Process(target=get_distance_to_internal_value_plane,
+                         args=(range(x-level, x+level+1), range(y-level, y+level+1),
+                               [z-level, z+level], internal_value, [x,y,z],
+                               point_sdf_internal_queue,
+                               point_sdf_external_queue,
+                               some_point_does_not_know_his_value_queue, sdf, terrain))
+        processes.append(planeZ)
+        planeZ.start()
+        # z_point_sdf_internal, z_point_sdf_external, z_some_point_does_not_know_his_value = get_distance_to_internal_value_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], internal_value, [x,y,z])
 
         # planos y
-        y_point_sdf_internal, y_point_sdf_external, y_some_point_does_not_know_his_value = get_distance_to_internal_value_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), internal_value, [x,y,z])
+        planeY = multiprocessing.Process(target=get_distance_to_internal_value_plane,
+                         args=(range(x-level, x+level+1), [y-level, y+level],
+                               range(z-level, z+level+1), internal_value, [x,y,z],
+                               point_sdf_internal_queue,
+                               point_sdf_external_queue,
+                               some_point_does_not_know_his_value_queue, sdf, terrain))
+        processes.append(planeY)
+        planeY.start()
+        # y_point_sdf_internal, y_point_sdf_external, y_some_point_does_not_know_his_value = get_distance_to_internal_value_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), internal_value, [x,y,z])
 
         # planos x
-        x_point_sdf_internal, x_point_sdf_external, x_some_point_does_not_know_his_value = get_distance_to_internal_value_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), internal_value, [x,y,z])
+        planeX = multiprocessing.Process(target=get_distance_to_internal_value_plane,
+                         args=([x-level, x+level], range(y-level, y+level+1),
+                               range(z-level, z+level+1), internal_value, [x,y,z],
+                               point_sdf_internal_queue,
+                               point_sdf_external_queue,
+                               some_point_does_not_know_his_value_queue, sdf, terrain))
+        processes.append(planeX)
+        planeX.start()
+        # x_point_sdf_internal, x_point_sdf_external, x_some_point_does_not_know_his_value = get_distance_to_internal_value_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), internal_value, [x,y,z])
 
-        point_sdf_internal = max_set(max_set(x_point_sdf_internal, y_point_sdf_internal), z_point_sdf_internal)
-        point_sdf_external = min_set(min_set(x_point_sdf_external, y_point_sdf_external), z_point_sdf_external)
-        some_point_does_not_know_his_value = x_some_point_does_not_know_his_value or y_some_point_does_not_know_his_value or z_some_point_does_not_know_his_value
+        for p in processes:
+            p.join()
+
+        point_sdf_internal = max_set(max_set(point_sdf_internal_queue.get(), point_sdf_internal_queue.get()), point_sdf_internal_queue.get())
+        point_sdf_external = min_set(min_set(point_sdf_external_queue.get(), point_sdf_external_queue.get()), point_sdf_external_queue.get())
+        some_point_does_not_know_his_value = some_point_does_not_know_his_value_queue.get() or some_point_does_not_know_his_value_queue.get() or some_point_does_not_know_his_value_queue.get()
 
         # si hay alguno internal con sdf value 1 --> devolver esos puntos
         if point_sdf_external!=set() and next(iter(point_sdf_external))[1] == 1:
@@ -288,16 +362,37 @@ def set_sdf_to_internal_values(x, y, z, points, internal_value): # points = {((x
     # print("set_sdf_to_internal_values: points: {} - level: {} - sdf[{}]: {}".format(points, level, [x,y,z], sdf[x][y][z]))
     level -= 1
     while level>0: # while  points is empty
+        processes = []
+
         # planos z
-        z_points_to_recalculate = set_sdf_to_internal_values_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], internal_value, [x,y,z], points)
+        planeZ = multiprocessing.Process(target=set_sdf_to_internal_values_plane,
+                         args=(range(x-level, x+level+1), range(y-level, y+level+1),
+                               [z-level, z+level], internal_value, [x,y,z], points))
+        processes.append(planeZ)
+        planeZ.start()
+
+        # planos z
+        # z_points_to_recalculate = set_sdf_to_internal_values_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], internal_value, [x,y,z], points)
 
         # planos y
-        y_points_to_recalculate = set_sdf_to_internal_values_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), internal_value, [x,y,z], points)
+        planeY = multiprocessing.Process(target=set_sdf_to_internal_values_plane,
+                         args=(range(x-level, x+level+1), [y-level, y+level],
+                               range(z-level, z+level+1), internal_value, [x,y,z], points))
+        processes.append(planeY)
+        planeY.start()
+        # y_points_to_recalculate = set_sdf_to_internal_values_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), internal_value, [x,y,z], points)
 
         # planos x
-        x_points_to_recalculate = set_sdf_to_internal_values_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), internal_value, [x,y,z], points)
+        planeX = multiprocessing.Process(target=set_sdf_to_internal_values_plane,
+                         args=([x-level, x+level], range(y-level, y+level+1),
+                               range(z-level, z+level+1), internal_value, [x,y,z], points))
+        processes.append(planeX)
+        planeX.start()
+        # x_points_to_recalculate = set_sdf_to_internal_values_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), internal_value, [x,y,z], points)
 
-        points_to_recalculate = z_points_to_recalculate.union(y_points_to_recalculate).union(x_points_to_recalculate) # TODO: recalcularlos
+        for p in processes:
+            p.join()
+        # points_to_recalculate = z_points_to_recalculate.union(y_points_to_recalculate).union(x_points_to_recalculate) # TODO: recalcularlos
         level -= 1
 
 
@@ -342,22 +437,41 @@ def set_sdf_to_NO_internal_values(x, y, z, points, internal_value): # points = {
     # print("set_sdf_to_NO_internal_values: points: {} - distance: {} - sdf[{}]: {}".format(points, level, [x,y,z], sdf[x][y][z]))
     level -= 1
     while level>0: # while  points is empty
+        processes = []
         # planos z
-        z_points_to_recalculate = set_sdf_to_NO_internal_values_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], internal_value, [x,y,z], points)
+        planeZ = multiprocessing.Process(target=set_sdf_to_NO_internal_values_plane,
+                         args=(range(x-level, x+level+1), range(y-level, y+level+1),
+                               [z-level, z+level], internal_value, [x,y,z], points))
+        processes.append(planeZ)
+        planeZ.start()
+        #z_points_to_recalculate = set_sdf_to_NO_internal_values_plane(range(x-level, x+level+1), range(y-level, y+level+1), [z-level, z+level], internal_value, [x,y,z], points)
 
         # planos y
-        y_points_to_recalculate = set_sdf_to_NO_internal_values_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), internal_value, [x,y,z], points)
+        planeY = multiprocessing.Process(target=set_sdf_to_NO_internal_values_plane,
+                         args=(range(x-level, x+level+1), [y-level, y+level],
+                               range(z-level, z+level+1), internal_value, [x,y,z], points))
+        processes.append(planeY)
+        planeY.start()
+        # y_points_to_recalculate = set_sdf_to_NO_internal_values_plane(range(x-level, x+level+1), [y-level, y+level], range(z-level, z+level+1), internal_value, [x,y,z], points)
 
         # planos x
-        x_points_to_recalculate = set_sdf_to_NO_internal_values_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), internal_value, [x,y,z], points)
+        planeX = multiprocessing.Process(target=set_sdf_to_NO_internal_values_plane,
+                         args=([x-level, x+level], range(y-level, y+level+1),
+                               range(z-level, z+level+1), internal_value, [x,y,z], points))
+        processes.append(planeX)
+        planeX.start()
+        # x_points_to_recalculate = set_sdf_to_NO_internal_values_plane([x-level, x+level], range(y-level, y+level+1), range(z-level, z+level+1), internal_value, [x,y,z], points)
 
-        points_to_recalculate = z_points_to_recalculate.union(y_points_to_recalculate).union(x_points_to_recalculate) # TODO: recalcularlos
+        for p in processes:
+            p.join()
+
+        # points_to_recalculate = z_points_to_recalculate.union(y_points_to_recalculate).union(x_points_to_recalculate) # TODO: recalcularlos
 
         level -= 1
 
 
 
-def get_distance(x, y, z, internal_value):
+def get_distance(x, y, z, internal_value, sdf):
     # print("\nGET DISTANCE POINT [{},{},{}]".format(x,y,z))
     initial_sdf_value = sdf[x][y][z]
     if initial_sdf_value is not None and initial_sdf_value != 0:
@@ -370,11 +484,11 @@ def get_distance(x, y, z, internal_value):
     XYZ_is_internal_value = is_internal_value(value_of_XYZ, internal_value)
 
     if XYZ_is_internal_value:
-        points = get_distance_to_NO_internal_value(x, y, z, internal_value)
-        set_sdf_to_internal_values(x, y, z, points, internal_value)
+        points = get_distance_to_NO_internal_value(x, y, z, internal_value, sdf, terrain)
+        set_sdf_to_internal_values(x, y, z, points, internal_value, sdf)
     else:
-        points = get_distance_to_internal_value(x,y,z, internal_value)
-        set_sdf_to_NO_internal_values(x, y, z, points, internal_value)
+        points = get_distance_to_internal_value(x,y,z, internal_value, sdf, terrain)
+        set_sdf_to_NO_internal_values(x, y, z, points, internal_value, sdf)
 
     return sdf[x][y][z]
 
@@ -383,31 +497,39 @@ def get_distance(x, y, z, internal_value):
 # Keep The Lights On
 
 import time
-def calculate_sdf(shape, internalValue):
+def calculate_sdf(shape, internalValue, sdf):
     initial_time=time.time()
     # TODO: empezar de un punto random?
     for i in range(shape[0]):
         # print("se calcula la distancia de para i = {}".format(i))
         for j in range(shape[1]):
             for k in range(shape[2]):
-                get_distance(i, j, k, internalValue)
+                get_distance(i, j, k, internalValue, sdf)
     end_time=time.time()
     print("Calcular la sdf de una matrix tardo {} segundos para el valor interno {}".format(end_time-initial_time, internalValue))
     return sdf
 
-#if __name__ == '__main__':
-internalValues = [[0.00,0.04]] # [[0.00,0.081], [0.082,0.17], [0.18,0.27], [0.28,0.4]]
-# TODO: for internalValue in internalValues save sdf
-# print(sdf)
-# terrain = [[[0.0, 0.03258603, 0.0618329,  0.0824457,  0.09786684],
-#             [0.00326539, 0.03349958, 0.06179116, 0.08256891, 0.09873772],
-#             [0.01080146, 0.03402521, 0.06090566, 0.08273219, 0.09871391],
-#             [0.01496741, 0.03328978, 0.05984878, 0.08213428, 0.09722163],
-#             [0.01769297, 0.03253883, 0.05857638, 0.08192541, 0.0978224 ]]]
-np.save('big_terrain_50_matrix.npy', terrain)
-print(terrain)
-print("Calculating SDF")
-final_sdf = calculate_sdf(shape, internalValues[0])
+x_total = 5
+y_total = 5
+z_total = 5
+if __name__ == '__main__':
+    shape = (x_total, y_total, z_total)
+    sdf = np.zeros(shape)
+    # sdf = [ [ [None] * x_total ] *y_total ] *z_total
+    terrain = generate_terrain(shape)
 
-print(final_sdf)
-np.save('big_terrain_50_sdf_matrix.npy', final_sdf)
+    internalValues = [[0.00,0.04]] # [[0.00,0.081], [0.082,0.17], [0.18,0.27], [0.28,0.4]]
+    # TODO: for internalValue in internalValues save sdf
+    # print(sdf)
+    # terrain = [[[0.0, 0.03258603, 0.0618329,  0.0824457,  0.09786684],
+    #             [0.00326539, 0.03349958, 0.06179116, 0.08256891, 0.09873772],
+    #             [0.01080146, 0.03402521, 0.06090566, 0.08273219, 0.09871391],
+    #             [0.01496741, 0.03328978, 0.05984878, 0.08213428, 0.09722163],
+    #             [0.01769297, 0.03253883, 0.05857638, 0.08192541, 0.0978224 ]]]
+    np.save('big_terrain_50_matrix.npy', terrain)
+    print(terrain)
+    print("Calculating SDF")
+    final_sdf = calculate_sdf(shape, internalValues[0], sdf)
+
+    print(final_sdf)
+    np.save('big_terrain_50_sdf_matrix.npy', final_sdf)

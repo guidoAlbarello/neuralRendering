@@ -41,9 +41,9 @@ def signal_handler(sig, frame):
 if __name__ == '__main__':   
     signal.signal(signal.SIGINT, signal_handler)
     
-    x_total = 50
-    y_total = 50
-    z_total = 50
+    x_total = 3
+    y_total = 3
+    z_total = 3
     shape = (x_total, y_total, z_total)
 
     terrain = generate_terrain(shape, True)
@@ -51,6 +51,7 @@ if __name__ == '__main__':
 
     sdf = calculate_sdf(terrain, shape, internalValues[0], True)
 
+    print(sdf)
     """
     print(sdf)
 
