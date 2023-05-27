@@ -1,5 +1,11 @@
 # Neural Rendering
 
+## Requires
+- npm
+- node js
+- jupyter notebook
+- git
+
 ## Directory structure
 
 * **research**: Here are stored every proof of concept, code, documentation we use.
