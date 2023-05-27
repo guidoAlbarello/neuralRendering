@@ -18,10 +18,20 @@ const int AMOUNT_OF_NODES_IN_TREE = ${AMOUNT_OF_NODES_IN_TREE};
 // TODO: Assume complete for now.
 const int AMOUNT_OF_LEAVES_IN_TREE = ${AMOUNT_OF_LEAVES_IN_TREE};
 
+const int TOTAL_SPHERES = ${TOTAL_SPHERES};
+
 struct Node {
     vec3 bbox;
     vec3 center;
     int depth;
+};
+
+struct LeafData {
+    int start_sdf1;
+    int start_sdf2;
+    int start_sdf3;
+    int start_sdf4;
+    int end_sdf;
 };
 
 const vec3 SDF1_color = vec3(${SDF1_COLOR});
@@ -45,6 +55,7 @@ const vec3 SDF4_color = vec3(${SDF4_COLOR});
 
 // We need to use the same array name as struct to be compliant with three.js framework. Otherwise we can't pass array of structures.
 uniform Node node[AMOUNT_OF_NODES_IN_TREE];
+uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
 uniform sampler2D spheres;
 
 /**
@@ -107,14 +118,14 @@ float sdfListOfSpheres(vec3 samplePoint, int start, int end) {
     if (start == end) { return MAX_DIST;}
 
     // Iterate over spheres sdf.
-    float dist = sphereSDF(samplePoint, spheres[start].xyz, spheres[start].w);
-    for (int i = 1; i< MAX_SPHERES_PER_OCTANT; i++) {
-        int idx = i+start;
-        if (idx >= end) {
+    float dist = MAX_DIST;
+    for (int i = 0; i< MAX_SPHERES_PER_OCTANT; i++) {
+        if (i+start >= end) {
             // Load spheres in multiple of 32. So that this breaks for the next 32 blocks.
             break;
         }
-        dist = smoothUnion(sphereSDF(samplePoint, spheres[idx].xyz, spheres[idx].w), dist);
+        vec4 sphere = texture2D(spheres, vec2(float(i+start)/float(TOTAL_SPHERES), 0.5));
+        dist = smoothUnion(sphereSDF(samplePoint, sphere.xyz, sphere.w), dist);
     }
     
     return dist;

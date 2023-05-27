@@ -11,12 +11,14 @@ const int MAX_SPHERES_PER_OCTANT = 20;
 const int MAX_AMOUNT_CHILDREN_PER_NODE = 8;
 const int TREE_ROOT_INDEX = 0;
 // Use textures to build bigger trees.
-const int MAX_TREE_DEPTH = 1;
+const int MAX_TREE_DEPTH = 2;
 const int MAX_TREE_NODES_PROCESSING = MAX_AMOUNT_CHILDREN_PER_NODE * MAX_TREE_DEPTH;
 
-const int AMOUNT_OF_NODES_IN_TREE = 9;
+const int AMOUNT_OF_NODES_IN_TREE = 73;
 // TODO: Assume complete for now.
-const int AMOUNT_OF_LEAVES_IN_TREE = 8;
+const int AMOUNT_OF_LEAVES_IN_TREE = 64;
+
+const int TOTAL_SPHERES = 1280;
 
 struct Node {
     vec3 bbox;
@@ -54,7 +56,7 @@ const vec3 SDF4_color = vec3(159.0/255.0, 129.0/255.0, 112.0/255.0);
 // We need to use the same array name as struct to be compliant with three.js framework. Otherwise we can't pass array of structures.
 uniform Node node[AMOUNT_OF_NODES_IN_TREE];
 uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
-uniform vec4 spheres[320];
+uniform sampler2D spheres;
 
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;
@@ -80,6 +82,10 @@ float smoothUnion(float a, float b) {
     float k = 10.0;
     float h = max( k-abs(a-b), 0.0 )/k;
     return min( a, b ) - h*h*k*(1.0/4.0); 
+}
+
+float opUnion(float a, float b) {
+    return min( a, b ); 
 }
 
 float sdBoxFrame( vec3 p, vec3 b, float e )
@@ -112,14 +118,14 @@ float sdfListOfSpheres(vec3 samplePoint, int start, int end) {
     if (start == end) { return MAX_DIST;}
 
     // Iterate over spheres sdf.
-    float dist = sphereSDF(samplePoint, spheres[start].xyz, spheres[start].w);
-    for (int i = 1; i< MAX_SPHERES_PER_OCTANT; i++) {
-        int idx = i+start;
-        if (idx >= end) {
+    float dist = MAX_DIST;
+    for (int i = 0; i< MAX_SPHERES_PER_OCTANT; i++) {
+        if (i+start >= end) {
             // Load spheres in multiple of 32. So that this breaks for the next 32 blocks.
             break;
         }
-        dist = smoothUnion(sphereSDF(samplePoint, spheres[idx].xyz, spheres[idx].w), dist);
+        vec4 sphere = texture2D(spheres, vec2(float(i+start)/float(TOTAL_SPHERES), 0.5));
+        dist = smoothUnion(sphereSDF(samplePoint, sphere.xyz, sphere.w), dist);
     }
     
     return dist;
@@ -243,11 +249,11 @@ float sceneSDF(vec3 samplePoint, inout vec3 color, vec3 eye, vec3 dir) {
     float treeWireframe = sdBoxFrame(samplePoint - node[0].center, node[0].bbox, 0.3);
     for (int i = 1; i < AMOUNT_OF_NODES_IN_TREE;i++) {
         Node currentNode = node[i];
-        treeWireframe = smoothUnion(sdBoxFrame(samplePoint - node[i].center, node[i].bbox, 0.3), treeWireframe);
+        treeWireframe = opUnion(sdBoxFrame(samplePoint - node[i].center, node[i].bbox, 0.3), treeWireframe);
     }
     
     float model = treeSdf(samplePoint, minDist, color, eye, dir);
-    float u = min(treeWireframe, model);
+    float u = opUnion(treeWireframe, model);
 
     color = u == treeWireframe ? vec3(0.7, 0.7, 0.7) : color;
 

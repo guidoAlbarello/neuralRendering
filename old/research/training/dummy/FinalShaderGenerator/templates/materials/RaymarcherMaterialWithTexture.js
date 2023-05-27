@@ -2,7 +2,11 @@ class RaymarcherMaterial extends Material {
   compile(fragmentShader) {
     let nodes = [${NODES}];
     let leaf_data = [${LEAF_DATA}]
-    let spheres_array = [${SPHERES}];
+
+    const data = new Float32Array( 4 * ${TOTAL_SPHERES});
+    ${SPHERES_DATA}
+	  let texture = new THREE.DataTexture( data, ${TOTAL_SPHERES}, 1 , THREE.RGBAFormat, THREE.FloatType);
+	  texture.needsUpdate = true;
 
     let uniforms = {
       iTime: { value: 0 },
@@ -16,7 +20,7 @@ class RaymarcherMaterial extends Material {
         value: leaf_data
       },
       spheres: {
-        value: spheres_array
+        value: texture
       },
     };
 

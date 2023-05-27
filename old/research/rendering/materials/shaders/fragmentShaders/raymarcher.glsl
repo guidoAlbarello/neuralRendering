@@ -3,26 +3,41 @@ uniform float iTime;
 
 const int MAX_MARCHING_STEPS = 255;
 const float MIN_DIST = 0.0;
-const float MAX_DIST = 1000.0;
+const float MAX_DIST = 10000.0;
 const float EPSILON = 0.0001;
 
-const int MAX_SPHERES_PER_OCTANT = 50;
+const int MAX_SPHERES_PER_OCTANT = 20;
 
 const int MAX_AMOUNT_CHILDREN_PER_NODE = 8;
 const int TREE_ROOT_INDEX = 0;
 // Use textures to build bigger trees.
-const int MAX_TREE_DEPTH = 0;
+const int MAX_TREE_DEPTH = 2;
 const int MAX_TREE_NODES_PROCESSING = MAX_AMOUNT_CHILDREN_PER_NODE * MAX_TREE_DEPTH;
 
-const int AMOUNT_OF_NODES_IN_TREE = 1;
+const int AMOUNT_OF_NODES_IN_TREE = 73;
 // TODO: Assume complete for now.
-const int AMOUNT_OF_LEAVES_IN_TREE = 1;
+const int AMOUNT_OF_LEAVES_IN_TREE = 64;
+
+const int TOTAL_SPHERES = 1280;
 
 struct Node {
     vec3 bbox;
-    vec3 centerPosition;
+    vec3 center;
     int depth;
 };
+
+struct LeafData {
+    int start_sdf1;
+    int start_sdf2;
+    int start_sdf3;
+    int start_sdf4;
+    int end_sdf;
+};
+
+const vec3 SDF1_color = vec3(0.0, 1.0, 239.0/255.0);
+const vec3 SDF2_color = vec3(199.0/255.0, 234.0/255.0, 70.0/255.0);
+const vec3 SDF3_color = vec3(251.0/255.0, 251.0/255.0, 148.0/255.0);
+const vec3 SDF4_color = vec3(159.0/255.0, 129.0/255.0, 112.0/255.0);
 
 // Memory array Distribution
 // level 0 :  [0 root]
@@ -39,8 +54,9 @@ struct Node {
 // [0.7.0.{0-7} hijos] [0.7.1.{0-7} hijos] [0.7.2.{0-7} hijos] [0.7.3.{0-7} hijos] [0.7.4.{0-7} hijos] [0.7.5.{0-7} hijos] [0.7.6.{0-7} hijos] [0.7.7.{0-7} hijos]
 
 // We need to use the same array name as struct to be compliant with three.js framework. Otherwise we can't pass array of structures.
-uniform Node node[AMOUNT_OF_NODES_IN_TREE+8];
-uniform vec4 spheres[MAX_SPHERES_PER_OCTANT];
+uniform Node node[AMOUNT_OF_NODES_IN_TREE];
+uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
+uniform sampler2D spheres;
 
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;
@@ -63,11 +79,24 @@ float sdf_boxcheap(vec3 c, vec3 p, vec3 s){
      return vmax(abs(p-c) - s);
 }
 float smoothUnion(float a, float b) {
-    float k = 0.1;
+    float k = 10.0;
     float h = max( k-abs(a-b), 0.0 )/k;
     return min( a, b ) - h*h*k*(1.0/4.0); 
 }
 
+float opUnion(float a, float b) {
+    return min( a, b ); 
+}
+
+float sdBoxFrame( vec3 p, vec3 b, float e )
+{
+    p = abs(p)-b;
+    vec3 q = abs(p+e)-e;
+    return min(min(
+      length(max(vec3(p.x,q.y,q.z),0.0))+min(max(p.x,max(q.y,q.z)),0.0),
+      length(max(vec3(q.x,p.y,q.z),0.0))+min(max(q.x,max(p.y,q.z)),0.0)),
+      length(max(vec3(q.x,q.y,p.z),0.0))+min(max(q.x,max(q.y,p.z)),0.0));
+}
 
 /**
  
@@ -83,16 +112,45 @@ float smoothUnion(float a, float b) {
  
 */
 
-float sdfListOfSpheres(vec3 samplePoint, vec4[MAX_SPHERES_PER_OCTANT] spheres) {
-    float dist = sphereSDF(samplePoint, spheres[0].xyz, spheres[0].w);
-    for (int i = 1; i< MAX_SPHERES_PER_OCTANT; i++) {
-        if (spheres[i].w == 0.0) {
+
+float sdfListOfSpheres(vec3 samplePoint, int start, int end) {
+    // If no spheres for this sdf then return empty space.
+    if (start == end) { return MAX_DIST;}
+
+    // Iterate over spheres sdf.
+    float dist = MAX_DIST;
+    for (int i = 0; i< MAX_SPHERES_PER_OCTANT; i++) {
+        if (i+start >= end) {
             // Load spheres in multiple of 32. So that this breaks for the next 32 blocks.
             break;
         }
-        dist = smoothUnion(sphereSDF(samplePoint, spheres[i].xyz, spheres[i].w), dist);
+        vec4 sphere = texture2D(spheres, vec2(float(i+start)/float(TOTAL_SPHERES), 0.5));
+        dist = smoothUnion(sphereSDF(samplePoint, sphere.xyz, sphere.w), dist);
     }
     
+    return dist;
+}
+
+float calculateSdfForBlock(vec3 samplePoint, LeafData leaf, inout vec3 color) {
+    float dist1 = sdfListOfSpheres(samplePoint, leaf.start_sdf1, leaf.start_sdf2);
+    float dist2 = sdfListOfSpheres(samplePoint, leaf.start_sdf2, leaf.start_sdf3);
+    float dist3 = sdfListOfSpheres(samplePoint, leaf.start_sdf3, leaf.start_sdf4);
+    float dist4 = sdfListOfSpheres(samplePoint, leaf.start_sdf4, leaf.end_sdf);
+
+    float dist = smoothUnion(dist1, dist2);
+    dist = smoothUnion(dist3, dist);
+    dist = smoothUnion(dist4, dist);
+
+    if (dist == dist1) {
+        color = SDF1_color;
+    } else if (dist == dist2) {
+        color = SDF2_color;
+    } else if (dist== dist3) {
+        color = SDF3_color;
+    } else {
+        color = SDF4_color;
+    }
+
     return dist;
 }
 
@@ -121,21 +179,22 @@ float treeSdf(vec3 samplePoint, in float minDist, inout vec3 color, vec3 eye, ve
     while (stack_pointer >= 0) {
         int currentIndex = stack[stack_pointer--];
         Node currentNode = node[currentIndex];
-        if (sdBox(samplePoint - currentNode.centerPosition, currentNode.bbox) < minDist) {           
+        if (sdBox(samplePoint - currentNode.center, currentNode.bbox) < minDist) {           
             if (currentNode.depth == MAX_TREE_DEPTH) {
                 // Offset all leaves to 0, node indexes to fetch sdfs.
-                minDist = sdfListOfSpheres(samplePoint, spheres/*nodeSdf[currentIndex -  (AMOUNT_OF_NODES_IN_TREE - AMOUNT_OF_LEAVES_IN_TREE)].spheres*/);
+                minDist = calculateSdfForBlock(samplePoint, leafData[currentIndex -  (AMOUNT_OF_NODES_IN_TREE - AMOUNT_OF_LEAVES_IN_TREE)], color);
             } else {
                 // Maybe do some dynamic programming here.
                 // Or use planes alignment to identify matches.
                 vec2 intersectedChildren[MAX_AMOUNT_CHILDREN_PER_NODE];
                 int amountIntersectedChildren = 0;
                 for (int i = 0; i < MAX_AMOUNT_CHILDREN_PER_NODE; i++) {
-                    // Guard clause against conditional branching optimizations.
+                    // Guard clause against conditional branching optimizations. Without this the else branch is executed in parallel and tries to push to the stack. That for some reason slows down everything.
                     if (currentNode.depth != MAX_TREE_DEPTH) {
-                        int childIndex = int(MAX_AMOUNT_CHILDREN_PER_NODE * currentIndex + 1 + i);
+                        // Use min to ensure that the index never gets OOB. Specially important to avoid a compiler issue where for loops are unrolled for leaf nodes and tries to access OOB.
+                        int childIndex = min(int(MAX_AMOUNT_CHILDREN_PER_NODE * currentIndex + 1 + i), AMOUNT_OF_NODES_IN_TREE-1);
                         Node child = node[childIndex];
-                        vec2 tNearTFar = intersectAABB(eye, dir, child.centerPosition - child.bbox, child.centerPosition + child.bbox);
+                        vec2 tNearTFar = intersectAABB(eye, dir, child.center - child.bbox, child.center + child.bbox);
                     
                         // If ray intersects cube add it to traversable children.
                         // When tNear is greater than tFar there's no intersection.
@@ -185,7 +244,20 @@ float treeSdf(vec3 samplePoint, in float minDist, inout vec3 color, vec3 eye, ve
 
 float sceneSDF(vec3 samplePoint, inout vec3 color, vec3 eye, vec3 dir) {
     float minDist = MAX_DIST;
-    return treeSdf(samplePoint, minDist, color, eye, dir);
+
+    // Draw Octree Wireframe
+    float treeWireframe = sdBoxFrame(samplePoint - node[0].center, node[0].bbox, 0.3);
+    for (int i = 1; i < AMOUNT_OF_NODES_IN_TREE;i++) {
+        Node currentNode = node[i];
+        treeWireframe = opUnion(sdBoxFrame(samplePoint - node[i].center, node[i].bbox, 0.3), treeWireframe);
+    }
+    
+    float model = treeSdf(samplePoint, minDist, color, eye, dir);
+    float u = opUnion(model, model);
+
+    color = u == treeWireframe ? vec3(0.7, 0.7, 0.7) : color;
+
+    return u;
 }
 
 /**
@@ -257,8 +329,8 @@ vec3 estimateNormal(vec3 p, vec3 eye, vec3 dir) {
  */
 vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye, vec3 dir, 
                           vec3 lightPos, vec3 lightIntensity) {
-    vec3 N = estimateNormal(p, eye, dir);
     vec3 L = normalize(lightPos - p);
+    vec3 N = estimateNormal(p, eye, L);
     vec3 V = normalize(eye - p);
     vec3 R = normalize(reflect(-L, N));
     
@@ -336,7 +408,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     vec3 dir = normalize(rotation*rayDirection(45.0, iResolution.xy, fragCoord));
 
-    vec3 eye = rotation*vec3(0.0,0.0,164.0);
+    vec3 eye = rotation*vec3(0.0,0.0,1000.0);
 
     vec3 K_d = vec3(0.7, 0.7, 0.7);
     float dist = shortestDistanceToSurface(eye, dir, MIN_DIST, MAX_DIST, K_d);
