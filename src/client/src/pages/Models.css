@@ -1,0 +1,36 @@
+.item-menu {
+    grid-area: menu;
+}
+
+.item-main {
+    grid-area: main;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 200px auto;
+    grid-template-areas:
+        'header header header header header header'
+        'menu main main main main main'
+        'menu main main main main main';
+    gap: 10px;
+    background-color: rgba(204, 204, 204, 0.024);
+    padding: 10px;
+}
+
+.grid-container > div {
+    background-color: rgba(222, 222, 209, 0.8); /*  */
+    text-align: center;
+    padding: 20px 0;
+    font-size: 30px;
+}
+
+.item-menu button {
+    border-radius: 4px;
+}
+
+.item-menu li {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}

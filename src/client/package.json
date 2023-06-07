@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@react-three/drei": "^9.17.3",
-    "@react-three/fiber": "^8.2.1",
+    "@react-three/fiber": "^8.13.0",
     "@react-ui-org/react-ui": "^0.45.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^11.2.7",

@@ -1,3 +1,4 @@
+import './Models.css'
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Outlet, useNavigate } from "react-router-dom";
@@ -22,9 +23,9 @@ const Models = () => {
 
   const getModelClasses = (id) => { 
     if (activeModelIndex === id) {
-      return "list-group-item list-group-item-action active"
+      return "menu-button active"
     }
-    return "list-group-item list-group-item-action"
+    return "menu-button"
    }
 
   const isModelEnabled = (model) => {
@@ -47,43 +48,43 @@ const Models = () => {
       navigate('/models/' + id)
     }
   
-      return (
-      <>
-        <div className="mb-4">
-          <p>
-            <b>Model name</b> {model.name}
-          </p>
-          <img alt='canvas-sample' src={getThumbnail(model.thumbnail_url)}/>
-          <p>
-              <b>Brief description</b>
-          </p>
-          <p>
-              <i>{model.description}</i>
-          </p>
-        </div>
-        <button type="button" className="btn btn-outline-primary" onClick={(e) => {someEventHandler(model.id)}}>
-          Explore
-        </button>
-      </>);
-    };
+    return (
+    <>
+      <div>
+        <p>
+          <b>Model name</b> {model.name}
+        </p>
+        <img alt='canvas-sample' src={getThumbnail(model.thumbnail_url)}/>
+        <p>
+            <b>Brief description</b>
+        </p>
+        <p>
+            <i>{model.description}</i>
+        </p>
+      </div>
+      <button type="button" onClick={(e) => {someEventHandler(model.id)}}>
+        Explore
+      </button>
+    </>);
+  };
 
   return (
     <>
-      <div className="row">
-        <div className="col-sm-4">
-          <div className="list-group mb-3">
+      <div className='grid-container'>
+        <div className='item-menu'>
+          <ul>
             {models.map((m) => (
-              <button key={m.id} type="button" className={getModelClasses(m.id)} disabled={isModelEnabled(m)} onClick={(e) => {toggleActiveModel(m)}}>
-                {m.name}
-              </button>
+              <li key={m.id}>
+                <button key={m.id} type="button" className={getModelClasses(m.id)} disabled={isModelEnabled(m)} onClick={(e) => {toggleActiveModel(m)}}>
+                  {m.name}
+                </button>
+              </li>
             ))
             }
-          </div>
-          <button type="button" className="btn btn-outline-primary">
-            Upload new model
-          </button>
+            <button type="button"> Upload new model </button>
+          </ul>
         </div>
-        <div className="col-sm-8">
+        <div className='item-main'>
           <Outlet />
           { 
             activeModel && activeModelView(activeModel) 

@@ -1,3 +1,4 @@
+/*
 import React from "react";
 import PropTypes from 'prop-types';
 import * as THREE from 'three';
@@ -60,6 +61,8 @@ Grapher.propTypes = {
     canvasHeight: PropTypes.number.isRequired,
     canvasWidth: PropTypes.number.isRequired,
 };
+
+*/
 
 /*
 const Grapher = (canvas) => {

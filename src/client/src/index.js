@@ -1,4 +1,4 @@
-import 'bootstrap/dist/css/bootstrap.css';
+//import 'bootstrap/dist/css/bootstrap.css';
 // Put any other imports below so that CSS from your
 // components takes precedence over default styles.
 import './index.css';
@@ -10,8 +10,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Model from "./pages/Model";
 import Models from "./pages/Models";
-import Explorer from "./pages/Explorer";
 import Docs from "./pages/Docs";
+import Explorer from "./pages/Explorer";
 import NoPage from "./pages/NoPage";
 import { createRoot } from 'react-dom/client'
 
@@ -24,8 +24,8 @@ root.render(<React.StrictMode>
                     <Route index element={<Home />} />
                     <Route path="models" element={<Models />} />
                     <Route path="models/:modelId" element={<Model />}/>
-                    <Route path="explorer" element={<Explorer />} />
                     <Route path="docs" element={<Docs />} />
+                    <Route path="explorer" element={<Explorer />} />
                     <Route path="*" element={<NoPage />} />
                   </Route>
                 </Routes>
