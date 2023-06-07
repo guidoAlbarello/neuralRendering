@@ -1,5 +1,9 @@
 var express = require('express');
 var router = express.Router();
+const fs = require('fs');
+const path = require('path')
+
+const publicPath = path.join(__dirname,'..', '/public');
 
 router.get('/', function(req, res, next) {
   models = [
@@ -56,6 +60,34 @@ router.get('/', function(req, res, next) {
   res.json({"models": models});
 });
 
+const shaders = {
+  vertexShader: `
+    precision mediump float;
+    varying vec2 vUv;
+    void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+        gl_Position = projectionMatrix * mvPosition;
+        vUv = uv;
+    }
+  `,
+  fragmentShader: `
+    varying vec2 vUv;
+    uniform float u_time;
+
+    void main() {
+      vec2 uv = vUv;
+      float cb = floor((uv.x + u_time)*20.) + floor((uv.y + u_time)*20.);
+      gl_FragColor = vec4(1.,0.,0.,mod(cb, 2.0));
+    }
+  `,
+};
+
+router.get('/shaders', (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*") // Set CORS headers
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
+  res.json(shaders);
+});
+
 router.get('/:id', function(req, res, next) {
   model = {
       id: req.params['id'],
@@ -63,9 +95,21 @@ router.get('/:id', function(req, res, next) {
       description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
       status: "MODEL_LOADED",
       thumbnail_url: "",
-      image_url: ""
+      image_url: "",
+      shader: 'sample-shader.glsl'
     }
   res.json(model);
+});
+
+router.get('/:id/shader/:shader', function(req, res, next) {  
+  fs.readFile(path.join(publicPath,'shaders',req.params['shader']), 'utf8', function(err, data) {
+    if (err) {
+      console.error(err);
+      res.send(err)
+      return
+    }
+    res.send(data);
+  })
 });
 
 router.post('/', function(req, res, next) {

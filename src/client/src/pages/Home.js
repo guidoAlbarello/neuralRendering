@@ -3,8 +3,8 @@ import React from "react";
 const Home = () => {
     return (
       <React.Fragment>
-        <h1>Welcome to the internet!</h1>
-        <h3>Fasten your seatbelt</h3>
+        <h1>Home</h1>
+        <h3>This the home page</h3>
       </React.Fragment>
     );
   };
