@@ -62,17 +62,22 @@ router.get('/', function(req, res, next) {
 
 const shaders = {
   vertexShader: `
-    uniform mat4 modelViewMatrix;
-    uniform mat4 projectionMatrix;
-    attribute vec3 position;
+    precision mediump float;
+    varying vec2 vUv;
     void main() {
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+        gl_Position = projectionMatrix * mvPosition;
+        vUv = uv;
     }
   `,
   fragmentShader: `
-    precision mediump float;
+    varying vec2 vUv;
+    uniform float u_time;
+
     void main() {
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+      vec2 uv = vUv;
+      float cb = floor((uv.x + u_time)*20.) + floor((uv.y + u_time)*20.);
+      gl_FragColor = vec4(1.,0.,0.,mod(cb, 2.0));
     }
   `,
 };
@@ -103,7 +108,6 @@ router.get('/:id/shader/:shader', function(req, res, next) {
       res.send(err)
       return
     }
-    //console.log('SENDING: ' + data)
     res.send(data);
   })
 });
