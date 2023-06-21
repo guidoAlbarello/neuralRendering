@@ -54,7 +54,7 @@ const vec3 SDF4_color = vec3(159.0/255.0, 129.0/255.0, 112.0/255.0);
 // We need to use the same array name as struct to be compliant with three.js framework. Otherwise we can't pass array of structures.
 uniform Node node[AMOUNT_OF_NODES_IN_TREE];
 uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
-uniform vec4 spheres[320];
+uniform vec4 spheres[28];
 
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;
@@ -80,6 +80,10 @@ float smoothUnion(float a, float b) {
     float k = 10.0;
     float h = max( k-abs(a-b), 0.0 )/k;
     return min( a, b ) - h*h*k*(1.0/4.0); 
+}
+
+float opUnion(float a, float b) {
+    return min( a, b ); 
 }
 
 float sdBoxFrame( vec3 p, vec3 b, float e )
@@ -243,11 +247,11 @@ float sceneSDF(vec3 samplePoint, inout vec3 color, vec3 eye, vec3 dir) {
     float treeWireframe = sdBoxFrame(samplePoint - node[0].center, node[0].bbox, 0.3);
     for (int i = 1; i < AMOUNT_OF_NODES_IN_TREE;i++) {
         Node currentNode = node[i];
-        treeWireframe = smoothUnion(sdBoxFrame(samplePoint - node[i].center, node[i].bbox, 0.3), treeWireframe);
+        treeWireframe = opUnion(sdBoxFrame(samplePoint - node[i].center, node[i].bbox, 0.3), treeWireframe);
     }
     
     float model = treeSdf(samplePoint, minDist, color, eye, dir);
-    float u = min(treeWireframe, model);
+    float u = opUnion(treeWireframe, model);
 
     color = u == treeWireframe ? vec3(0.7, 0.7, 0.7) : color;
 
