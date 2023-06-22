@@ -18,6 +18,7 @@ const int AMOUNT_OF_NODES_IN_TREE = ${AMOUNT_OF_NODES_IN_TREE};
 // TODO: Assume complete for now.
 const int AMOUNT_OF_LEAVES_IN_TREE = ${AMOUNT_OF_LEAVES_IN_TREE};
 
+const int TOTAL_SPHERES = ${TOTAL_SPHERES};
 struct Node {
     vec3 bbox;
     vec3 center;
@@ -54,7 +55,7 @@ const vec3 SDF4_color = vec3(${SDF4_COLOR});
 // We need to use the same array name as struct to be compliant with three.js framework. Otherwise we can't pass array of structures.
 uniform Node node[AMOUNT_OF_NODES_IN_TREE];
 uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
-uniform vec4 spheres[${TOTAL_SPHERES}];
+uniform vec4 spheres[TOTAL_SPHERES];
 
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;

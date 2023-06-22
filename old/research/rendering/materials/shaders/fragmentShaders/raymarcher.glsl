@@ -6,17 +6,19 @@ const float MIN_DIST = 0.0;
 const float MAX_DIST = 10000.0;
 const float EPSILON = 0.0001;
 
-const int MAX_SPHERES_PER_OCTANT = 20;
+const int MAX_SPHERES_PER_OCTANT = 200;
 
 const int MAX_AMOUNT_CHILDREN_PER_NODE = 8;
 const int TREE_ROOT_INDEX = 0;
 // Use textures to build bigger trees.
-const int MAX_TREE_DEPTH = 1;
+const int MAX_TREE_DEPTH = 0;
 const int MAX_TREE_NODES_PROCESSING = MAX_AMOUNT_CHILDREN_PER_NODE * MAX_TREE_DEPTH;
 
-const int AMOUNT_OF_NODES_IN_TREE = 9;
+const int AMOUNT_OF_NODES_IN_TREE = 1;
 // TODO: Assume complete for now.
-const int AMOUNT_OF_LEAVES_IN_TREE = 8;
+const int AMOUNT_OF_LEAVES_IN_TREE = 1;
+
+const int TOTAL_SPHERES = 800;
 
 struct Node {
     vec3 bbox;
@@ -54,7 +56,7 @@ const vec3 SDF4_color = vec3(159.0/255.0, 129.0/255.0, 112.0/255.0);
 // We need to use the same array name as struct to be compliant with three.js framework. Otherwise we can't pass array of structures.
 uniform Node node[AMOUNT_OF_NODES_IN_TREE];
 uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
-uniform vec4 spheres[28];
+uniform sampler2D spheres;
 
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;
@@ -116,14 +118,14 @@ float sdfListOfSpheres(vec3 samplePoint, int start, int end) {
     if (start == end) { return MAX_DIST;}
 
     // Iterate over spheres sdf.
-    float dist = sphereSDF(samplePoint, spheres[start].xyz, spheres[start].w);
-    for (int i = 1; i< MAX_SPHERES_PER_OCTANT; i++) {
-        int idx = i+start;
-        if (idx >= end) {
+    float dist = MAX_DIST;
+    for (int i = 0; i< MAX_SPHERES_PER_OCTANT; i++) {
+        if (i+start >= end) {
             // Load spheres in multiple of 32. So that this breaks for the next 32 blocks.
             break;
         }
-        dist = smoothUnion(sphereSDF(samplePoint, spheres[idx].xyz, spheres[idx].w), dist);
+        vec4 sphere = texture2D(spheres, vec2(float(i+start)/float(TOTAL_SPHERES), 0.5));
+        dist = smoothUnion(sphereSDF(samplePoint, sphere.xyz, sphere.w), dist);
     }
     
     return dist;
@@ -136,17 +138,21 @@ float calculateSdfForBlock(vec3 samplePoint, LeafData leaf, inout vec3 color) {
     float dist4 = sdfListOfSpheres(samplePoint, leaf.start_sdf4, leaf.end_sdf);
 
     float dist = smoothUnion(dist1, dist2);
+    
     dist = smoothUnion(dist3, dist);
     dist = smoothUnion(dist4, dist);
 
-    if (dist == dist1) {
+    float minDist = min(min(min(dist1, dist2), dist3), dist4);
+    if (minDist == dist1) {
         color = SDF1_color;
-    } else if (dist == dist2) {
+    } else if (minDist == dist2) {
         color = SDF2_color;
-    } else if (dist== dist3) {
+    } else if (minDist == dist3) {
         color = SDF3_color;
-    } else {
+    } else if (minDist == dist4) {
         color = SDF4_color;
+    } else {
+        color = vec3(1.0,0.0,0.0);
     }
 
     return dist;
@@ -255,7 +261,7 @@ float sceneSDF(vec3 samplePoint, inout vec3 color, vec3 eye, vec3 dir) {
 
     color = u == treeWireframe ? vec3(0.7, 0.7, 0.7) : color;
 
-    return u;
+    return max(max(u, sdBox(samplePoint-node[0].center, node[0].bbox)),  -sphereSDF(samplePoint, vec3(30.0, 30.0,30.0)+node[0].center, 40.0));
 }
 
 /**
@@ -404,9 +410,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
         );
 
-    vec3 dir = normalize(rotation*rayDirection(45.0, iResolution.xy, fragCoord));
+    vec3 dir = normalize(rayDirection(45.0, iResolution.xy, fragCoord));
 
-    vec3 eye = rotation*vec3(0.0,0.0,1000.0);
+    vec3 eye = vec3(0.0,0.0,500.0);
 
     vec3 K_d = vec3(0.7, 0.7, 0.7);
     float dist = shortestDistanceToSurface(eye, dir, MIN_DIST, MAX_DIST, K_d);
