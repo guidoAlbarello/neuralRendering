@@ -431,6 +431,10 @@ data[1596] = 17.0; data[1597] = 51.0; data[1598] = 2.0; data[1599] = 3.0;
       spheres: {
         value: texture
       },
+      enableSDF1: { value: true },
+      enableSDF2: { value: true },
+      enableSDF3: { value: true },
+      enableSDF4: { value: true },
     };
 
     this.uniforms = uniforms;

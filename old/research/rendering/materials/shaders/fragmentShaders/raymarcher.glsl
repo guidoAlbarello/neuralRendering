@@ -6,7 +6,7 @@ const float MIN_DIST = 0.0;
 const float MAX_DIST = 10000.0;
 const float EPSILON = 0.0001;
 
-const int MAX_SPHERES_PER_OCTANT = 200;
+const int MAX_SPHERES_PER_OCTANT = 100;
 
 const int MAX_AMOUNT_CHILDREN_PER_NODE = 8;
 const int TREE_ROOT_INDEX = 0;
@@ -18,7 +18,7 @@ const int AMOUNT_OF_NODES_IN_TREE = 1;
 // TODO: Assume complete for now.
 const int AMOUNT_OF_LEAVES_IN_TREE = 1;
 
-const int TOTAL_SPHERES = 800;
+const int TOTAL_SPHERES = 400;
 
 struct Node {
     vec3 bbox;
@@ -57,6 +57,12 @@ const vec3 SDF4_color = vec3(159.0/255.0, 129.0/255.0, 112.0/255.0);
 uniform Node node[AMOUNT_OF_NODES_IN_TREE];
 uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
 uniform sampler2D spheres;
+
+// Uniforms to enable and disable sdfs on the fly.
+uniform bool enableSDF1;
+uniform bool enableSDF2;
+uniform bool enableSDF3;
+uniform bool enableSDF4;
 
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;
@@ -137,12 +143,26 @@ float calculateSdfForBlock(vec3 samplePoint, LeafData leaf, inout vec3 color) {
     float dist3 = sdfListOfSpheres(samplePoint, leaf.start_sdf3, leaf.start_sdf4);
     float dist4 = sdfListOfSpheres(samplePoint, leaf.start_sdf4, leaf.end_sdf);
 
-    float dist = smoothUnion(dist1, dist2);
-    
-    dist = smoothUnion(dist3, dist);
-    dist = smoothUnion(dist4, dist);
+    float dist = MAX_DIST;
+    float minDist = MAX_DIST;
 
-    float minDist = min(min(min(dist1, dist2), dist3), dist4);
+    if (enableSDF1) {
+        minDist = min(minDist, dist1);
+        dist = smoothUnion(dist1, dist);
+    }
+    if (enableSDF2) {
+        minDist = min(minDist, dist2);
+        dist = smoothUnion(dist2, dist);
+    }
+    if (enableSDF3) {
+        minDist = min(minDist, dist3);
+        dist = smoothUnion(dist3, dist);
+    }
+    if (enableSDF4) {
+        minDist = min(minDist, dist4);
+        dist = smoothUnion(dist4, dist);
+    }
+
     if (minDist == dist1) {
         color = SDF1_color;
     } else if (minDist == dist2) {
@@ -261,7 +281,7 @@ float sceneSDF(vec3 samplePoint, inout vec3 color, vec3 eye, vec3 dir) {
 
     color = u == treeWireframe ? vec3(0.7, 0.7, 0.7) : color;
 
-    return max(max(u, sdBox(samplePoint-node[0].center, node[0].bbox)),  -sphereSDF(samplePoint, vec3(30.0, 30.0,30.0)+node[0].center, 40.0));
+    return u;
 }
 
 /**
@@ -410,9 +430,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
         );
 
-    vec3 dir = normalize(rayDirection(45.0, iResolution.xy, fragCoord));
+    vec3 dir = normalize(rotation*rayDirection(45.0, iResolution.xy, fragCoord));
 
-    vec3 eye = vec3(0.0,0.0,500.0);
+    vec3 eye = rotation*vec3(0.0,0.0,1000.0);
 
     vec3 K_d = vec3(0.7, 0.7, 0.7);
     float dist = shortestDistanceToSurface(eye, dir, MIN_DIST, MAX_DIST, K_d);
