@@ -2,6 +2,8 @@ from utils.bigterrain import BigTerrain
 from utils.generic import csv_to_dataframe
 from input.newscene import NewSceneFromFile
 from input.newscene import BigTerrainData
+from io import StringIO
+import pandas as pd
 
 
 class BigTerrainToCreateData:
@@ -28,15 +30,15 @@ class CreateShaderCommand:
         self.final_big_terrain_data = final_big_terrain_data
 
 
-def create_shader(command: CreateShaderCommand):
+def create_shader_from_path(command: CreateShaderCommand):
     # Read file
     big_terrain_from_file = command.big_terrain_from_file_data
     density_cube = BigTerrain(big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z,
                               big_terrain_from_file.block_width, big_terrain_from_file.points_per_dimention, big_terrain_from_file.max_spheres)
-    volcano = csv_to_dataframe(command.scene.file_path)
+    scene_df = csv_to_dataframe(command.scene.file_path)
     density_cube.terrain_octants_matrix.append([])
     density_cube.terrain_octants_matrix[0].append([])
-    density_cube.terrain_octants_matrix[0][0].append(volcano)
+    density_cube.terrain_octants_matrix[0][0].append(scene_df)
 
     # Create final big terrain
     final_big_terrain = command.final_big_terrain_data
@@ -48,3 +50,50 @@ def create_shader(command: CreateShaderCommand):
     subdivided_terrain.buildBVH()
     # Generate shader and material
     subdivided_terrain.generateShaderWithTextures(command.shader_generated_code_file_path, command.material_generated_code_file_path)
+
+
+def create_shader_from_file(command: CreateShaderCommand):
+    # Read file
+    big_terrain_from_file = command.big_terrain_from_file_data
+    density_cube = BigTerrain(big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z,
+                              big_terrain_from_file.block_width, big_terrain_from_file.points_per_dimention, big_terrain_from_file.max_spheres)
+
+    # csv_to_dataframe
+    csv_data = command.scene.file.decode("utf-8")
+    csv_string_io = StringIO(csv_data)
+    scene_df = pd.read_csv(csv_string_io)
+
+    density_cube.terrain_octants_matrix.append([])
+    density_cube.terrain_octants_matrix[0].append([])
+    density_cube.terrain_octants_matrix[0][0].append(scene_df)
+
+    # Create final big terrain
+    final_big_terrain = command.final_big_terrain_data
+    subdivided_terrain = BigTerrain(final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z,
+                                    final_big_terrain.block_width, final_big_terrain.points_per_dimention, final_big_terrain.max_spheres)
+    subdivided_terrain.generateFromDensityCube(density_cube, 0)
+    subdivided_terrain.calculateSdf()
+    subdivided_terrain.computeEdits()
+    subdivided_terrain.buildBVH()
+    # Generate shader and material
+    subdivided_terrain.generateShaderWithTextures(command.shader_generated_code_file_path, command.material_generated_code_file_path)
+
+
+def create_shader(command: CreateShaderCommand):
+    # density_cube = BigTerrain(1,1,1,64, 64.0, 100)
+    big_terrain_from_file = command.big_terrain_from_file_data
+    density_cube = BigTerrain(big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z,
+                              big_terrain_from_file.block_width, big_terrain_from_file.points_per_dimention, big_terrain_from_file.max_spheres)
+    density_cube.generateBigTerrain()
+
+
+    # subdivided_terrain = BigTerrain(1,1,1,4, 64.0, 100)
+    final_big_terrain = command.final_big_terrain_data
+    subdivided_terrain = BigTerrain(final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z,
+                                    final_big_terrain.block_width, final_big_terrain.points_per_dimention, final_big_terrain.max_spheres)
+
+    subdivided_terrain.generateFromDensityCube(density_cube, 2)
+    subdivided_terrain.calculateSdf()
+    subdivided_terrain.computeEdits()
+    subdivided_terrain.buildBVH()
+    subdivided_terrain.generateShaderWithTextures()
