@@ -1,0 +1,26 @@
+Creamos un entorno virtual para que aplique a este proyecto no mas (guia: docs.python.org/es/3/tutorial/venv.html), entonces en consola:
+$ cd server-python
+$ python3 -m venv fastapi-env
+
+# Activar el entorno
+$ source fastapi-env/bin/activate
+
+# instalar lo necesario para poder ejecutar fast api (guia: fastapi.tiangolo.com)
+$ pip install fastapi
+# instalamos un modulo que nos permita generar un servidor web
+$ pip install "uvicorn[standard]"
+
+
+# Levantar el servidor
+$ uvicorn main:app --reload
+
+
+
+# requires
+$ pip install matplotlib
+$ pip install pandas
+$ pip install noise
+
+
+# Para cerrar el entorno
+$ deactivate
