@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile
 from input.newscene import NewSceneFromFile
 from utils.idcreator import create_id
 from fastapi.responses import FileResponse
@@ -56,10 +56,14 @@ async def create(scene: NewSceneFromFile, background_tasks: BackgroundTasks):
 @app.get("/scenes/{id}")
 def find_scene(id: str):
     """
-    Returns path of file fragment shader and material
+    Returns path of file fragment shader and material if exists, else returns null
     """
-    generated_shader_file_path = os.path.abspath(shader_file_path.replace("{id}", id))
-    generated_material_file_path = os.path.abspath(material_file_path.replace("{id}", id))
+    generated_shader_abs_file_path = os.path.abspath(shader_file_path.replace("{id}", id))
+    generated_shader_file_path = generated_shader_abs_file_path if os.path.isfile(generated_shader_abs_file_path) else None
+
+    generated_material_abs_file_path = os.path.abspath(material_file_path.replace("{id}", id))
+    generated_material_file_path = generated_material_abs_file_path if os.path.isfile(generated_material_abs_file_path) else None
+
     return {"shader": generated_shader_file_path, "material": generated_material_file_path}
 
 
