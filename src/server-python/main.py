@@ -4,7 +4,7 @@ from utils.idcreator import create_id
 from fastapi.responses import FileResponse
 import os
 import uvicorn
-from utils.shadercreator import create_shader_from_path, create_shader_from_file, CreateShaderCommand, BigTerrainToCreateData
+from utils.shadercreator import create_shader_from_path, create_shader_from_file, create_shader, CreateShaderCommand, BigTerrainToCreateData
 
 
 app = FastAPI()
@@ -54,7 +54,7 @@ async def create(scene: NewSceneFromFile, background_tasks: BackgroundTasks):
         background_tasks.add_task(create_shader_from_path, command)
     else:
         # random BigTerrain
-        background_tasks.add_task(create_shader_from_path, command)
+        background_tasks.add_task(create_shader, command)
 
     return {"message": "New scene is creating", "id": id}
 

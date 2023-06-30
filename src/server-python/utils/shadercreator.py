@@ -96,4 +96,4 @@ def create_shader(command: CreateShaderCommand):
     subdivided_terrain.calculateSdf()
     subdivided_terrain.computeEdits()
     subdivided_terrain.buildBVH()
-    subdivided_terrain.generateShaderWithTextures()
+    subdivided_terrain.generateShaderWithTextures(command.shader_generated_code_file_path, command.material_generated_code_file_path)
