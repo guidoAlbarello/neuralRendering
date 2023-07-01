@@ -16,11 +16,15 @@ class OctreeNode:
         self.sphere_data = None
 
 
+DEFAULT_COLORS = [[0, 1.0, 239 / 255.0], [199 / 255.0, 234 / 255.0, 70 / 255.0],
+                  [251 / 255.0, 251 / 255.0, 148 / 255.0],
+                  [159 / 255.0, 129 / 255.0, 112 / 255.0]]
+
+DEFAULT_INTERNAL_VALUES = [[0.0, 0.25], [0.25, 0.51], [0.51, 0.81], [0.81, 1.1]]
+
+
 class BigTerrain:
-    def __init__(self, dim_x, dim_y, dim_z, block_width, points_per_dimention, max_spheres,
-                 internal_values=[[0.0, 0.25], [0.25, 0.51], [0.51, 0.81], [0.81, 1.1]],
-                 colors=[[0, 1.0, 239 / 255.0], [199 / 255.0, 234 / 255.0, 70 / 255.0],
-                         [251 / 255.0, 251 / 255.0, 148 / 255.0], [159 / 255.0, 129 / 255.0, 112 / 255.0]]):
+    def __init__(self, dim_x, dim_y, dim_z, block_width, points_per_dimention, max_spheres, internal_values, colors):
         # Each terrain is compound of a matrix full of terrains
         self.terrain_octants_matrix = []
         self.sdfs_per_octant_matrix = []
@@ -31,11 +35,11 @@ class BigTerrain:
         self.dim_z = dim_z
         self.points_per_dimention = points_per_dimention
         self.max_spheres_per_block = max_spheres
-        self.internal_values = internal_values
+        self.internal_values = internal_values if colors is not None else DEFAULT_INTERNAL_VALUES
         self.bvh = None
         self.bvh_depth = -1
         self.bvh_cube_position_map = {}
-        self.colors = colors
+        self.colors = colors if colors is not None else DEFAULT_COLORS
 
     def set_points_per_dimention(self, points):
         self.points_per_dimention = points

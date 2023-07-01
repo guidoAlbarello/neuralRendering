@@ -11,8 +11,8 @@ class BigTerrainData(BaseModel):
 
 
 class NewSceneFromFile(BaseModel):
-    internal_values: list[list[float]]  # [[0, 1],[1,2]]
-    colors: list[list[float]]  # [[1.0,1.0,1.0], [...]]
+    internal_values: Optional[list[list[float]]]  # [[0, 1],[1,2]]
+    colors: Optional[list[list[float]]]  # [[1.0,1.0,1.0], [...]]
     file_path: Optional[str]
     file: Optional[UploadFile]
     big_terrain_data: BigTerrainData
