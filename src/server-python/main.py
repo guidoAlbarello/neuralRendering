@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile
+from starlette.responses import RedirectResponse
 from input.newscene import NewSceneFromFile
 from utils.idcreator import create_id
 from fastapi.responses import FileResponse
@@ -12,6 +13,12 @@ app = FastAPI()
 shader_file_path = "./scene-files/{id}/raymarcher.glsl"
 material_file_path = "./scene-files/{id}/RaymarcherMaterial.js"
 
+@app.get("/")
+async def redirect():
+    """
+    Redirect to API documentation
+    """
+    return RedirectResponse(url='/docs')
 
 @app.post("/scenes", status_code=201)
 async def create(scene: NewSceneFromFile, background_tasks: BackgroundTasks):
@@ -107,4 +114,3 @@ def _download(file_path, downloaded_filename):
 
 if __name__ == '__main__':
     uvicorn.run("main:app", port=8000, reload=True, access_log=False)  # http://127.0.0.1:8000
-    # http://127.0.0.1:8000/docs  --> API documentation
