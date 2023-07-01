@@ -49,3 +49,7 @@ def smooth_union(d1, d2):
 
 def sphere_sdf(point, sphere):
     return sqrt(distance_squared_3D(point, sphere[0])) - sphere[1]
+
+
+def make_offset(x, y, z):
+    return {'x': x, 'y':y, 'z': z}
