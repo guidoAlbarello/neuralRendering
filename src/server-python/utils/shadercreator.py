@@ -46,7 +46,7 @@ def create_shader_from_path(command: CreateShaderCommand):
     subdivided_terrain = BigTerrain(final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z,
                                     final_big_terrain.block_width, final_big_terrain.points_per_dimention,
                                     final_big_terrain.max_spheres, command.scene.internal_values, command.scene.colors)
-    subdivided_terrain.generate_from_density_cube(density_cube, 0)
+    subdivided_terrain.generate_from_density_cube(density_cube, command.scene.subdivision_level)
     subdivided_terrain.calculate_sdf()
     subdivided_terrain.compute_edits()
     subdivided_terrain.build_bvh()
@@ -76,7 +76,7 @@ def create_shader_from_file(command: CreateShaderCommand):
     subdivided_terrain = BigTerrain(final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z,
                                     final_big_terrain.block_width, final_big_terrain.points_per_dimention,
                                     final_big_terrain.max_spheres, command.scene.internal_values, command.scene.colors)
-    subdivided_terrain.generate_from_density_cube(density_cube, 0)
+    subdivided_terrain.generate_from_density_cube(density_cube, command.scene.subdivision_level)
     subdivided_terrain.calculate_sdf()
     subdivided_terrain.compute_edits()
     subdivided_terrain.build_bvh()
@@ -100,7 +100,7 @@ def create_shader(command: CreateShaderCommand):
                                     final_big_terrain.block_width, final_big_terrain.points_per_dimention,
                                     final_big_terrain.max_spheres, command.scene.internal_values, command.scene.colors)
 
-    subdivided_terrain.generate_from_density_cube(density_cube, 2)
+    subdivided_terrain.generate_from_density_cube(density_cube, command.scene.subdivision_level)
     subdivided_terrain.calculate_sdf()
     subdivided_terrain.compute_edits()
     subdivided_terrain.build_bvh()

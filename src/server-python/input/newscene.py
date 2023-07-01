@@ -17,3 +17,4 @@ class NewSceneFromFile(BaseModel):
     file: Optional[UploadFile]
     big_terrain_data: BigTerrainData
     final_big_terrain_data: BigTerrainData
+    subdivision_level: int

@@ -11,14 +11,14 @@ const int MAX_SPHERES_PER_OCTANT = 100;
 const int MAX_AMOUNT_CHILDREN_PER_NODE = 8;
 const int TREE_ROOT_INDEX = 0;
 // Use textures to build bigger trees.
-const int MAX_TREE_DEPTH = 2;
+const int MAX_TREE_DEPTH = 1;
 const int MAX_TREE_NODES_PROCESSING = MAX_AMOUNT_CHILDREN_PER_NODE * MAX_TREE_DEPTH;
 
-const int AMOUNT_OF_NODES_IN_TREE = 73;
+const int AMOUNT_OF_NODES_IN_TREE = 9;
 // TODO: Assume complete for now.
-const int AMOUNT_OF_LEAVES_IN_TREE = 64;
+const int AMOUNT_OF_LEAVES_IN_TREE = 8;
 
-const int TOTAL_SPHERES = 9050;
+const int TOTAL_SPHERES = 862;
 
 struct Node {
     vec3 bbox;
