@@ -28,7 +28,7 @@ class BigTerrain:
         self.dim_z = dim_z
         self.points_per_dimention = points_per_dimention
         self.max_spheres_per_block = max_spheres
-        self.internalValues = [[0.0, 0.25], [0.25, 0.51], [0.51, 0.81], [0.81, 1.1]]
+        self.internal_values = [[0.0, 0.25], [0.25, 0.51], [0.51, 0.81], [0.81, 1.1]]
         self.bvh = None
         self.bvh_depth = -1
         self.bvh_cube_position_map = {}
@@ -49,14 +49,14 @@ class BigTerrain:
     def generate_flat_density(self, i, j, k):
         density = 0
         height = j / float(self.block_width)
-        if (height >= self.internalValues[0][0] and height < self.internalValues[0][1]):
-            density = self.internalValues[0][0]
-        if (height >= self.internalValues[1][0] and height < self.internalValues[1][1]):
-            density = self.internalValues[1][0]
-        if (height >= self.internalValues[2][0] and height < self.internalValues[2][1]):
-            density = self.internalValues[2][0]
-        if (height >= self.internalValues[3][0] and height < self.internalValues[3][1]):
-            density = self.internalValues[3][0]
+        if (height >= self.internal_values[0][0] and height < self.internal_values[0][1]):
+            density = self.internal_values[0][0]
+        if (height >= self.internal_values[1][0] and height < self.internal_values[1][1]):
+            density = self.internal_values[1][0]
+        if (height >= self.internal_values[2][0] and height < self.internal_values[2][1]):
+            density = self.internal_values[2][0]
+        if (height >= self.internal_values[3][0] and height < self.internal_values[3][1]):
+            density = self.internal_values[3][0]
         return density
 
     def generate_spherical_density(self, i, j, k):
@@ -67,10 +67,10 @@ class BigTerrain:
                     point[2] - sphere_center[2]) ** 2
         if distance_squared <= r ** 2:
             # solid sphere density
-            return self.internalValues[3][0]
+            return self.internal_values[3][0]
         else:
             # water density
-            return self.internalValues[0][0]
+            return self.internal_values[0][0]
 
     def generate_perlin_density(self, i, j, k):
         scale = float(self.block_width)
@@ -91,17 +91,17 @@ class BigTerrain:
         if block_idx % 8 == 1:
             return self.generate_spherical_density(i, j, k)
         if block_idx % 8 == 2:
-            return self.internalValues[3][0]
+            return self.internal_values[3][0]
         if block_idx % 8 == 3:
-            return self.internalValues[2][0]
+            return self.internal_values[2][0]
         if block_idx % 8 == 4:
-            return self.internalValues[3][0]
+            return self.internal_values[3][0]
         if block_idx % 8 == 5:
-            return self.internalValues[0][0]
+            return self.internal_values[0][0]
         if block_idx % 8 == 6:
             return -1
         if block_idx % 8 == 7:
-            return self.internalValues[1][0]
+            return self.internal_values[1][0]
 
     # TODO: Allow not complete octrees. O sea, que no todos los niveles tengan que estar completos. Lo cual es equivalente
     # a tener octantes con mas niveles de subdivisiones que otros.
@@ -231,13 +231,13 @@ class BigTerrain:
     def get_color_from_density(self, density):
         if density < 0:
             return [0.0, 0.0, 0.0]
-        if (density >= self.internalValues[0][0] and density < self.internalValues[0][1]):
+        if (density >= self.internal_values[0][0] and density < self.internal_values[0][1]):
             return [0, 1.0, 239 / 255.0]
-        if (density >= self.internalValues[1][0] and density < self.internalValues[1][1]):
+        if (density >= self.internal_values[1][0] and density < self.internal_values[1][1]):
             return [199 / 255.0, 234 / 255.0, 70 / 255.0]
-        if (density >= self.internalValues[2][0] and density < self.internalValues[2][1]):
+        if (density >= self.internal_values[2][0] and density < self.internal_values[2][1]):
             return [251 / 255.0, 251 / 255.0, 148 / 255.0]
-        if (density >= self.internalValues[3][0] and density < self.internalValues[3][1]):
+        if (density >= self.internal_values[3][0] and density < self.internal_values[3][1]):
             return [159 / 255.0, 129 / 255.0, 112 / 255.0]
 
     def get_neighbors(self, density_object_cube, position):
@@ -363,10 +363,10 @@ class BigTerrain:
 
     def calculate_sdf_for_block(self, block):
         # For now lets assume that sdfs are conex blocks and we only have 4 internal values.
-        sdf_water = block[(block.density >= self.internalValues[0][0]) & (block.density < self.internalValues[0][1])]
-        sdf_grass = block[(block.density >= self.internalValues[1][0]) & (block.density < self.internalValues[1][1])]
-        sdf_meadow = block[(block.density >= self.internalValues[2][0]) & (block.density < self.internalValues[2][1])]
-        sdf_rock = block[(block.density >= self.internalValues[3][0]) & (block.density < self.internalValues[3][1])]
+        sdf_water = block[(block.density >= self.internal_values[0][0]) & (block.density < self.internal_values[0][1])]
+        sdf_grass = block[(block.density >= self.internal_values[1][0]) & (block.density < self.internal_values[1][1])]
+        sdf_meadow = block[(block.density >= self.internal_values[2][0]) & (block.density < self.internal_values[2][1])]
+        sdf_rock = block[(block.density >= self.internal_values[3][0]) & (block.density < self.internal_values[3][1])]
 
         # Calculate distances.
 
