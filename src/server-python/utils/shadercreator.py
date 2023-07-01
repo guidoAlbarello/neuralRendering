@@ -35,7 +35,7 @@ def create_shader_from_path(command: CreateShaderCommand):
     big_terrain_from_file = command.big_terrain_from_file_data
     density_cube = BigTerrain(big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z,
                               big_terrain_from_file.block_width, big_terrain_from_file.points_per_dimention,
-                              big_terrain_from_file.max_spheres, command.scene.internal_values)
+                              big_terrain_from_file.max_spheres, command.scene.internal_values, command.scene.colors)
     scene_df = csv_to_dataframe(command.scene.file_path)
     density_cube.terrain_octants_matrix.append([])
     density_cube.terrain_octants_matrix[0].append([])
@@ -45,7 +45,7 @@ def create_shader_from_path(command: CreateShaderCommand):
     final_big_terrain = command.final_big_terrain_data
     subdivided_terrain = BigTerrain(final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z,
                                     final_big_terrain.block_width, final_big_terrain.points_per_dimention,
-                                    final_big_terrain.max_spheres, command.scene.internal_values)
+                                    final_big_terrain.max_spheres, command.scene.internal_values, command.scene.colors)
     subdivided_terrain.generate_from_density_cube(density_cube, 0)
     subdivided_terrain.calculate_sdf()
     subdivided_terrain.compute_edits()
@@ -60,7 +60,7 @@ def create_shader_from_file(command: CreateShaderCommand):
     big_terrain_from_file = command.big_terrain_from_file_data
     density_cube = BigTerrain(big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z,
                               big_terrain_from_file.block_width, big_terrain_from_file.points_per_dimention,
-                              big_terrain_from_file.max_spheres, command.scene.internal_values)
+                              big_terrain_from_file.max_spheres, command.scene.internal_values, command.scene.colors)
 
     # csv_to_dataframe
     csv_data = command.scene.file.decode("utf-8")
@@ -75,7 +75,7 @@ def create_shader_from_file(command: CreateShaderCommand):
     final_big_terrain = command.final_big_terrain_data
     subdivided_terrain = BigTerrain(final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z,
                                     final_big_terrain.block_width, final_big_terrain.points_per_dimention,
-                                    final_big_terrain.max_spheres, command.scene.internal_values)
+                                    final_big_terrain.max_spheres, command.scene.internal_values, command.scene.colors)
     subdivided_terrain.generate_from_density_cube(density_cube, 0)
     subdivided_terrain.calculate_sdf()
     subdivided_terrain.compute_edits()
@@ -90,7 +90,7 @@ def create_shader(command: CreateShaderCommand):
     big_terrain_from_file = command.big_terrain_from_file_data
     density_cube = BigTerrain(big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z,
                               big_terrain_from_file.block_width, big_terrain_from_file.points_per_dimention,
-                              big_terrain_from_file.max_spheres, command.scene.internal_values)
+                              big_terrain_from_file.max_spheres, command.scene.internal_values, command.scene.colors)
     density_cube.generate_big_terrain()
 
 
@@ -98,7 +98,7 @@ def create_shader(command: CreateShaderCommand):
     final_big_terrain = command.final_big_terrain_data
     subdivided_terrain = BigTerrain(final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z,
                                     final_big_terrain.block_width, final_big_terrain.points_per_dimention,
-                                    final_big_terrain.max_spheres, command.scene.internal_values)
+                                    final_big_terrain.max_spheres, command.scene.internal_values, command.scene.colors)
 
     subdivided_terrain.generate_from_density_cube(density_cube, 2)
     subdivided_terrain.calculate_sdf()

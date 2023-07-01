@@ -29,8 +29,9 @@ async def create(scene: NewSceneFromFile, background_tasks: BackgroundTasks):
     '''
     Body example:
     {
-      "internal_values": [[ 0.0, 1.0]],
-      "colors": [[1.0, 1.0, 1.0]],
+      "internal_values": [[0.0, 0.25], [0.25, 0.51], [0.51, 0.81], [0.81, 1.1]],
+      "colors": [[0, 1.0, 239 / 255.0], [199 / 255.0, 234 / 255.0, 70 / 255.0],
+                         [251 / 255.0, 251 / 255.0, 148 / 255.0], [159 / 255.0, 129 / 255.0, 112 / 255.0]],
       "file_path": "string",
       "big_terrain_data": {
         "dim_x_y_z": 1,

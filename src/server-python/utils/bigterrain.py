@@ -18,7 +18,9 @@ class OctreeNode:
 
 class BigTerrain:
     def __init__(self, dim_x, dim_y, dim_z, block_width, points_per_dimention, max_spheres,
-                 internal_values=[[0.0, 0.25], [0.25, 0.51], [0.51, 0.81], [0.81, 1.1]]):
+                 internal_values=[[0.0, 0.25], [0.25, 0.51], [0.51, 0.81], [0.81, 1.1]],
+                 colors=[[0, 1.0, 239 / 255.0], [199 / 255.0, 234 / 255.0, 70 / 255.0],
+                         [251 / 255.0, 251 / 255.0, 148 / 255.0], [159 / 255.0, 129 / 255.0, 112 / 255.0]]):
         # Each terrain is compound of a matrix full of terrains
         self.terrain_octants_matrix = []
         self.sdfs_per_octant_matrix = []
@@ -33,6 +35,7 @@ class BigTerrain:
         self.bvh = None
         self.bvh_depth = -1
         self.bvh_cube_position_map = {}
+        self.colors = colors
 
     def set_points_per_dimention(self, points):
         self.points_per_dimention = points
@@ -232,14 +235,14 @@ class BigTerrain:
     def get_color_from_density(self, density):
         if density < 0:
             return [0.0, 0.0, 0.0]
-        if (density >= self.internal_values[0][0] and density < self.internal_values[0][1]):
-            return [0, 1.0, 239 / 255.0]
-        if (density >= self.internal_values[1][0] and density < self.internal_values[1][1]):
-            return [199 / 255.0, 234 / 255.0, 70 / 255.0]
-        if (density >= self.internal_values[2][0] and density < self.internal_values[2][1]):
-            return [251 / 255.0, 251 / 255.0, 148 / 255.0]
-        if (density >= self.internal_values[3][0] and density < self.internal_values[3][1]):
-            return [159 / 255.0, 129 / 255.0, 112 / 255.0]
+        if (self.internal_values[0][0] <= density < self.internal_values[0][1]):
+            return self.colors[0]
+        if (self.internal_values[1][0] <= density < self.internal_values[1][1]):
+            return self.colors[1]
+        if (self.internal_values[2][0] <= density < self.internal_values[2][1]):
+            return self.colors[2]
+        if (self.internal_values[3][0] <= density < self.internal_values[3][1]):
+            return self.colors[3]
 
     def get_neighbors(self, density_object_cube, position):
         e = density_object_cube.index[position]
@@ -388,10 +391,10 @@ class BigTerrain:
                         self.calculate_sdf_for_block(self.terrain_octants_matrix[i][j][k]))
 
     def compute_edits_for_block(self, sdfs):
-        return [[generate_spheres(sdfs[0], self.max_spheres_per_block), [0, 1.0, 239 / 255.0]],
-                [generate_spheres(sdfs[1], self.max_spheres_per_block), [199 / 255.0, 234 / 255.0, 70 / 255.0]],
-                [generate_spheres(sdfs[2], self.max_spheres_per_block), [251 / 255.0, 251 / 255.0, 148 / 255.0]],
-                [generate_spheres(sdfs[3], self.max_spheres_per_block), [159 / 255.0, 129 / 255.0, 112 / 255.0]]]
+        return [[generate_spheres(sdfs[0], self.max_spheres_per_block), self.colors[0]],
+                [generate_spheres(sdfs[1], self.max_spheres_per_block), self.colors[1]],
+                [generate_spheres(sdfs[2], self.max_spheres_per_block), self.colors[2]],
+                [generate_spheres(sdfs[3], self.max_spheres_per_block), self.colors[3]]]
 
     def compute_edits(self):
         for i in range(self.dim_x):
