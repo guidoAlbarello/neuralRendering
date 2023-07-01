@@ -1,4 +1,4 @@
-from utils.generic import distanceSquared3D, generateSpheres, smoothUnion, sphereSDF
+from utils.generic import distance_squared_3D, generate_spheres, smooth_union, sphere_sdf
 import numpy as np
 import matplotlib.pyplot as plt
 import noise
@@ -374,10 +374,10 @@ class BigTerrain:
                     self.sdfs_per_octant_matrix[i][j].append(self.calculateSdfForBlock(self.terrain_octants_matrix[i][j][k]))
 
     def computeEditsForBlock(self, sdfs):
-        return [[generateSpheres(sdfs[0], self.max_spheres_per_block), [0, 1.0, 239/255.0]],
-                [generateSpheres(sdfs[1], self.max_spheres_per_block), [199/255.0, 234/255.0, 70/255.0]],
-                [generateSpheres(sdfs[2], self.max_spheres_per_block), [251/255.0, 251/255.0, 148/255.0]],
-                [generateSpheres(sdfs[3], self.max_spheres_per_block), [159/255.0, 129/255.0, 112/255.0]]]
+        return [[generate_spheres(sdfs[0], self.max_spheres_per_block), [0, 1.0, 239 / 255.0]],
+                [generate_spheres(sdfs[1], self.max_spheres_per_block), [199 / 255.0, 234 / 255.0, 70 / 255.0]],
+                [generate_spheres(sdfs[2], self.max_spheres_per_block), [251 / 255.0, 251 / 255.0, 148 / 255.0]],
+                [generate_spheres(sdfs[3], self.max_spheres_per_block), [159 / 255.0, 129 / 255.0, 112 / 255.0]]]
 
     def computeEdits(self):
         for i in range(self.dim_x):
@@ -683,7 +683,7 @@ class BigTerrain:
                 total_points = total_points + 1
                 is_inside_sphere = False
                 for sphere in spheres:
-                    if distanceSquared3D(point, sphere[0]) < sphere[1]**2:
+                    if distance_squared_3D(point, sphere[0]) < sphere[1]**2:
                         is_inside_sphere = True
                         break
                 if not is_inside_sphere:
@@ -706,9 +706,9 @@ class BigTerrain:
 
     def pointIsInsideSpheresBySdfWithSmoothUnion(self, i, j, k, s, point):
         spheres = self.spheres_per_octant_matrix[i][j][k][s][0]
-        dist = sphereSDF(point, spheres[0])
+        dist = sphere_sdf(point, spheres[0])
         for sphere in spheres[1::]:
-            dist = smoothUnion(sphereSDF(point, sphere), dist)
+            dist = smooth_union(sphere_sdf(point, sphere), dist)
             if dist <= 0:
                 # If dist is negative, then point is inside sphere
                 # If dist is zero, then point is on the surface of the sphere
