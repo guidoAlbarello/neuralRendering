@@ -17,7 +17,8 @@ class OctreeNode:
 
 
 class BigTerrain:
-    def __init__(self, dim_x, dim_y, dim_z, block_width, points_per_dimention, max_spheres):
+    def __init__(self, dim_x, dim_y, dim_z, block_width, points_per_dimention, max_spheres,
+                 internal_values=[[0.0, 0.25], [0.25, 0.51], [0.51, 0.81], [0.81, 1.1]]):
         # Each terrain is compound of a matrix full of terrains
         self.terrain_octants_matrix = []
         self.sdfs_per_octant_matrix = []
@@ -28,7 +29,7 @@ class BigTerrain:
         self.dim_z = dim_z
         self.points_per_dimention = points_per_dimention
         self.max_spheres_per_block = max_spheres
-        self.internal_values = [[0.0, 0.25], [0.25, 0.51], [0.51, 0.81], [0.81, 1.1]]
+        self.internal_values = internal_values
         self.bvh = None
         self.bvh_depth = -1
         self.bvh_cube_position_map = {}
@@ -64,7 +65,7 @@ class BigTerrain:
         point = [i, j, k]
         r = 50
         distance_squared = (point[0] - sphere_center[0]) ** 2 + (point[1] - sphere_center[1]) ** 2 + (
-                    point[2] - sphere_center[2]) ** 2
+                point[2] - sphere_center[2]) ** 2
         if distance_squared <= r ** 2:
             # solid sphere density
             return self.internal_values[3][0]
@@ -138,8 +139,8 @@ class BigTerrain:
                         for y in range(self.points_per_dimention):
                             for z in range(self.points_per_dimention):
                                 index = (z + k * self.points_per_dimention) + (
-                                            y + j * self.points_per_dimention) * density_cube.points_per_dimention + (
-                                                    x + i * self.points_per_dimention) * density_cube.points_per_dimention ** 2
+                                        y + j * self.points_per_dimention) * density_cube.points_per_dimention + (
+                                                x + i * self.points_per_dimention) * density_cube.points_per_dimention ** 2
                                 point = density_cube_data.loc[index]
                                 terrain.append([point['x'], point['y'], point['z'], point['density']])
 
