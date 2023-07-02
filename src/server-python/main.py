@@ -30,8 +30,10 @@ async def create(scene: NewSceneFromFile, background_tasks: BackgroundTasks):
     Body example:
     {
       "internal_values": [[0.0, 0.25], [0.25, 0.51], [0.51, 0.81], [0.81, 1.1]],
-      "colors": [[0, 1.0, 239 / 255.0], [199 / 255.0, 234 / 255.0, 70 / 255.0],
-                         [251 / 255.0, 251 / 255.0, 148 / 255.0], [159 / 255.0, 129 / 255.0, 112 / 255.0]],
+      "colors": [[0, 1.0, 0.9372559], 
+                 [0.78039215686274, 0.917647, 0.2745],
+                 [0.98431372549, 0.98431372549, 0.58], 
+                 [0.6235294117647, 0.5, 0.4392156862745]],
       "file_path": "string",
       "big_terrain_data": {
         "dim_x_y_z": 1,
@@ -44,7 +46,8 @@ async def create(scene: NewSceneFromFile, background_tasks: BackgroundTasks):
         "block_width": 4,
         "points_per_dimention": 64.0,
         "max_spheres": 100
-      }
+      },
+      "subdivision_level": 1
     }
     '''
     # create scene id
