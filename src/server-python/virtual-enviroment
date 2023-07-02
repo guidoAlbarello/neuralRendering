@@ -10,16 +10,16 @@ $ pip install fastapi
 # instalamos un modulo que nos permita generar un servidor web
 $ pip install "uvicorn[standard]"
 
-
-# Levantar el servidor
-$ uvicorn main:app --reload
-
-
-
 # requires
 $ pip install matplotlib
 $ pip install pandas
 $ pip install noise
+
+
+# Levantar el servidor ejecutamos el main.py o lo levantamos directo
+opcion 1 - main.py: $ python3 main.py
+opcion 2 - directo: $ uvicorn main:app --reload
+
 
 
 # Para cerrar el entorno
