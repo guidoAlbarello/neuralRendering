@@ -408,7 +408,7 @@ class BigTerrain:
         for i in range(self.dim_x):
             for j in range(self.dim_y):
                 for k in range(self.dim_z):
-                    for w in range(4):
+                    for w in range(len(self.internal_values)):
                         total_spheres = total_spheres + len(self.spheres_per_octant_matrix[i][j][k][w][0])
 
         return total_spheres
@@ -514,6 +514,13 @@ class BigTerrain:
             sdf_enablements += f"\nuniform bool enableSDF{index};"
         return sdf_enablements
 
+    def sdf_enablement_true_to_string(self):
+        sdf_enablements = ""
+        for index in range(len(self.internal_values)):
+            sdf_enablements += f"\nenableSDF{index}: {{ value: true }},"
+        return sdf_enablements
+
+
     def leaf_data_struct_to_string(self):
         struct = "struct LeafData {"
         for i in range(len(self.internal_values)):
@@ -613,7 +620,8 @@ class BigTerrain:
             '${NODES}': nodes_string,
             '${LEAF_DATA}': leaf_data_string,
             '${SPHERES_DATA}': spheres_string,
-            '${TOTAL_SPHERES}': str(self.get_total_spheres())
+            '${TOTAL_SPHERES}': str(self.get_total_spheres()),
+            '${SDF_ENABLEMENT_TRUE}': self.sdf_enablement_true_to_string()
         }
 
         with open('./templates/materials/RaymarcherMaterialWithTexture.js') as f:
@@ -623,7 +631,7 @@ class BigTerrain:
             with open(material_generated_code_file_path, 'w') as fw:
                 fw.writelines(lines_to_write)
 
-    def generate_shader_with_uniform_arrays(self):
+    def generate_shader_with_uniform_arrays(self):  # TODO: delete
         CONFIG_PARAMETERS_SHADER = {
             '${MAX_SPHERES_PER_OCTANT}': str(self.max_spheres_per_block),
             '${MAX_TREE_DEPTH}': str(self.bvh_depth),

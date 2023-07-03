@@ -22,10 +22,7 @@ class RaymarcherMaterial extends Material {
       spheres: {
         value: texture
       },
-      enableSDF1: { value: true },
-      enableSDF2: { value: true },
-      enableSDF3: { value: true },
-      enableSDF4: { value: true },
+      ${SDF_ENABLEMENT_TRUE}
     };
 
     this.uniforms = uniforms;
