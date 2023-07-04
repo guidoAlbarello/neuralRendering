@@ -370,20 +370,14 @@ class BigTerrain:
         return list(map(lambda x: x * step, distances))
 
     def calculate_sdf_for_block(self, block):
-        # For now lets assume that sdfs are conex blocks and we only have 4 internal values.
-        sdf_water = block[(block.density >= self.internal_values[0][0]) & (block.density < self.internal_values[0][1])]
-        sdf_grass = block[(block.density >= self.internal_values[1][0]) & (block.density < self.internal_values[1][1])]
-        sdf_meadow = block[(block.density >= self.internal_values[2][0]) & (block.density < self.internal_values[2][1])]
-        sdf_rock = block[(block.density >= self.internal_values[3][0]) & (block.density < self.internal_values[3][1])]
+        sdfs = []
+        for internal_value in self.internal_values:
+            sdf = block[(block.density >= internal_value[0]) & (block.density < internal_value[1])]
+            # Calculate distances.
+            sdf['distance'] = self.look_for_frontiers(sdf)
+            sdfs.append(sdf)
 
-        # Calculate distances.
-
-        sdf_water['distance'] = self.look_for_frontiers(sdf_water)
-        sdf_grass['distance'] = self.look_for_frontiers(sdf_grass)
-        sdf_meadow['distance'] = self.look_for_frontiers(sdf_meadow)
-        sdf_rock['distance'] = self.look_for_frontiers(sdf_rock)
-
-        return [sdf_water, sdf_grass, sdf_meadow, sdf_rock]
+        return sdfs
 
     def calculate_sdf(self):
         for i in range(self.dim_x):
@@ -395,10 +389,10 @@ class BigTerrain:
                         self.calculate_sdf_for_block(self.terrain_octants_matrix[i][j][k]))
 
     def compute_edits_for_block(self, sdfs):
-        return [[generate_spheres(sdfs[0], self.max_spheres_per_block), self.colors[0]],
-                [generate_spheres(sdfs[1], self.max_spheres_per_block), self.colors[1]],
-                [generate_spheres(sdfs[2], self.max_spheres_per_block), self.colors[2]],
-                [generate_spheres(sdfs[3], self.max_spheres_per_block), self.colors[3]]]
+        edits = []
+        for i in range(len(sdfs)):
+            edits.append([generate_spheres(sdfs[i], self.max_spheres_per_block), self.colors[i]])
+        return edits
 
     def compute_edits(self):
         for i in range(self.dim_x):
@@ -414,7 +408,7 @@ class BigTerrain:
         for i in range(self.dim_x):
             for j in range(self.dim_y):
                 for k in range(self.dim_z):
-                    for w in range(4):
+                    for w in range(len(self.internal_values)):
                         total_spheres = total_spheres + len(self.spheres_per_octant_matrix[i][j][k][w][0])
 
         return total_spheres
@@ -498,28 +492,75 @@ class BigTerrain:
             node.bounding_box[0], node.bounding_box[1], node.bounding_box[2], node.center[0], node.center[1],
             node.center[2], node.depth)
 
-    def leaf_data_to_string(self, start_sdf1, start_sdf2,
-                            start_sdf3,
-                            start_sdf4, end_sdf):
-        return "{{\n\t\t\tstart_sdf1: {},\n\t\t\tstart_sdf2: {},\n\t\t\tstart_sdf3: {},\n\t\t\tstart_sdf4: {},\n\t\t\tend_sdf: {}\n\t\t}}".format(
-            start_sdf1,
-            start_sdf2,
-            start_sdf3,
-            start_sdf4, end_sdf)
+    def leaf_data_to_string(self, sdf_starts):
+        leaf_data = "{"
+        for index, start_sdf in enumerate(sdf_starts):
+            if index != 0:
+                leaf_data += ","
+            leaf_data += f"\n\t\t\tstart_sdf{index}: {start_sdf}"
+        leaf_data += "\n\t\t}"
+
+        return leaf_data.replace(f"start_sdf{len(sdf_starts)-1}", "end_sdf")
+
+    def sdf_colors_to_string(self):
+        sdf_colors = ""
+        for index, color in enumerate(self.colors):
+            sdf_colors += f"\nconst vec3 SDF{index}_color = vec3({color[0]}, {color[1]}, {color[2]});"
+        return sdf_colors
+
+    def sdf_enablements_to_string(self):
+        sdf_enablements = ""
+        for index in range(len(self.internal_values)):
+            sdf_enablements += f"\nuniform bool enableSDF{index};"
+        return sdf_enablements
+
+    def sdf_enablement_true_to_string(self):
+        sdf_enablements = ""
+        for index in range(len(self.internal_values)):
+            sdf_enablements += f"\nenableSDF{index}: {{ value: true }},"
+        return sdf_enablements
+
+
+    def leaf_data_struct_to_string(self):
+        struct = "struct LeafData {"
+        for i in range(len(self.internal_values)):
+            struct += f"\n\tint start_sdf{i};"
+        struct += "\n\tint end_sdf;"
+        struct += "\n};"
+        return struct
+
+    def calculate_sdf_for_block_function_to_string(self):
+        distances = ""
+        enablement = ""
+        colors = "\n\t"
+
+        amount_of_sdfs = len(self.internal_values)
+        for i in range(amount_of_sdfs):
+            distances += f"\n\tfloat dist{i} = sdfListOfSpheres(samplePoint, leaf.start_sdf{i}, leaf.start_sdf{i+1});"
+
+            enablement += f"\n\tif (enableSDF{i}) {{\n\t\tminDist = min(minDist, dist{i});\n\t\tdist = smoothUnion(dist{i}, dist);\n\t}}"
+
+            if i != 0:
+                colors += "\n\telse "
+            colors += f"if (minDist == dist{i}) {{\n\t\tcolor = SDF{i}_color;\n\t}}"
+        colors += "\n\telse {\n\t\tcolor = vec3(1.0,0.0,0.0);\n\t}"
+        distances = distances.replace(f"start_sdf{amount_of_sdfs}", "end_sdf")
+        return distances + "\n\tfloat dist = MAX_DIST;\n\tfloat minDist = MAX_DIST;" + enablement + colors + "\n\treturn dist;"
 
     def generate_shader_with_textures(self, shader_generated_code_file_path='./generatedCode/raymarcher.glsl',
                                       material_generated_code_file_path='./generatedCode/RaymarcherMaterial.js'):
+
         CONFIG_PARAMETERS_SHADER = {
             '${MAX_SPHERES_PER_OCTANT}': str(self.max_spheres_per_block),
             '${MAX_TREE_DEPTH}': str(self.bvh_depth),
             '${AMOUNT_OF_NODES_IN_TREE}': str(int((8 ** (self.bvh_depth + 1) - 1) / 7)),
             '${AMOUNT_OF_LEAVES_IN_TREE}': str(8 ** self.bvh_depth),
             '${TOTAL_SPHERES}': str(self.get_total_spheres()),
-            '${SDF1_COLOR}': '0.0, 1.0, 239.0/255.0',
-            '${SDF2_COLOR}': '199.0/255.0, 234.0/255.0, 70.0/255.0',
-            '${SDF3_COLOR}': '251.0/255.0, 251.0/255.0, 148.0/255.0',
-            '${SDF4_COLOR}': '159.0/255.0, 129.0/255.0, 112.0/255.0',
-            '${SMOOTH_UNION_K}': '10.0'
+            '${SDFS_COLORS}': self.sdf_colors_to_string(),
+            '${SMOOTH_UNION_K}': '10.0',
+            '${SDF_ENABLEMENT}': self.sdf_enablements_to_string(),
+            '${LEAF_DATA_STRUCT}': self.leaf_data_struct_to_string(),
+            '${CALCULATE_SDF_FOR_BLOCK_FUNCTION}': self.calculate_sdf_for_block_function_to_string()
         }
 
         with open('./templates/shaders/fragmentShaders/raymarcher_with_texture.glsl') as f:
@@ -545,54 +586,26 @@ class BigTerrain:
             # Fifo order. Leaf nodes are traversed in order.
             if (currentNode.depth == self.bvh_depth):
                 # Add spheres.
-                start_sdf1 = spheres_pointer
-                c = start_sdf1
-                for s in currentNode.sphere_data[0][0]:
-                    spheres.append("data[{}] = {}; data[{}] = {}; data[{}] = {}; data[{}] = {};"
-                                   .format(texture_pointer, s[0][0],
-                                           texture_pointer + 1, s[0][1],
-                                           texture_pointer + 2, s[0][2],
-                                           texture_pointer + 3, s[1]))
-                    c = c + 1
-                    texture_pointer += 4
-
-                start_sdf2 = c
-                for s in currentNode.sphere_data[1][0]:
-                    spheres.append("data[{}] = {}; data[{}] = {}; data[{}] = {}; data[{}] = {};"
-                                   .format(texture_pointer, s[0][0],
-                                           texture_pointer + 1, s[0][1],
-                                           texture_pointer + 2, s[0][2],
-                                           texture_pointer + 3, s[1]))
-                    c = c + 1
-                    texture_pointer += 4
-
-                start_sdf3 = c
-                for s in currentNode.sphere_data[2][0]:  # Add slice fro msphere_pointer
-                    spheres.append("data[{}] = {}; data[{}] = {}; data[{}] = {}; data[{}] = {};"
-                                   .format(texture_pointer, s[0][0],
-                                           texture_pointer + 1, s[0][1],
-                                           texture_pointer + 2, s[0][2],
-                                           texture_pointer + 3, s[1]))
-                    c = c + 1
-                    texture_pointer += 4
-
-                start_sdf4 = c
-                for s in currentNode.sphere_data[3][0]:
-                    spheres.append("data[{}] = {}; data[{}] = {}; data[{}] = {}; data[{}] = {};"
-                                   .format(texture_pointer, s[0][0],
-                                           texture_pointer + 1, s[0][1],
-                                           texture_pointer + 2, s[0][2],
-                                           texture_pointer + 3, s[1]))
-                    c = c + 1
-                    texture_pointer += 4
+                sdf_starts = []
+                c = spheres_pointer
+                for i in range(len(self.internal_values)):
+                    start_sdf = c
+                    for s in currentNode.sphere_data[i][0]:
+                        spheres.append("data[{}] = {}; data[{}] = {}; data[{}] = {}; data[{}] = {};"
+                                       .format(texture_pointer, s[0][0],  # x
+                                               texture_pointer + 1, s[0][1],  # y
+                                               texture_pointer + 2, s[0][2],  # z
+                                               texture_pointer + 3, s[1]))  # radio
+                        c = c + 1
+                        texture_pointer += 4
+                    sdf_starts.append(start_sdf)
+                sdf_starts.append(c)
 
                 spheres_pointer = c
 
                 # Generate leaf_data.
-                leaf_data.append(self.leaf_data_to_string(start_sdf1,
-                                                          start_sdf2,
-                                                          start_sdf3,
-                                                          start_sdf4, c))
+                leaf_data.append(self.leaf_data_to_string(sdf_starts))
+
             else:
                 # Traverse children
                 for i in range(8):
@@ -607,7 +620,8 @@ class BigTerrain:
             '${NODES}': nodes_string,
             '${LEAF_DATA}': leaf_data_string,
             '${SPHERES_DATA}': spheres_string,
-            '${TOTAL_SPHERES}': str(self.get_total_spheres())
+            '${TOTAL_SPHERES}': str(self.get_total_spheres()),
+            '${SDF_ENABLEMENT_TRUE}': self.sdf_enablement_true_to_string()
         }
 
         with open('./templates/materials/RaymarcherMaterialWithTexture.js') as f:
@@ -617,7 +631,7 @@ class BigTerrain:
             with open(material_generated_code_file_path, 'w') as fw:
                 fw.writelines(lines_to_write)
 
-    def generate_shader_with_uniform_arrays(self):
+    def generate_shader_with_uniform_arrays(self):  # TODO: delete
         CONFIG_PARAMETERS_SHADER = {
             '${MAX_SPHERES_PER_OCTANT}': str(self.max_spheres_per_block),
             '${MAX_TREE_DEPTH}': str(self.bvh_depth),

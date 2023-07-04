@@ -26,18 +26,9 @@ struct Node {
     int depth;
 };
 
-struct LeafData {
-    int start_sdf1;
-    int start_sdf2;
-    int start_sdf3;
-    int start_sdf4;
-    int end_sdf;
-};
+${LEAF_DATA_STRUCT}
 
-const vec3 SDF1_color = vec3(${SDF1_COLOR});
-const vec3 SDF2_color = vec3(${SDF2_COLOR});
-const vec3 SDF3_color = vec3(${SDF3_COLOR});
-const vec3 SDF4_color = vec3(${SDF4_COLOR});
+${SDFS_COLORS}
 
 // Memory array Distribution
 // level 0 :  [0 root]
@@ -59,10 +50,7 @@ uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
 uniform sampler2D spheres;
 
 // Uniforms to enable and disable sdfs on the fly.
-uniform bool enableSDF1;
-uniform bool enableSDF2;
-uniform bool enableSDF3;
-uniform bool enableSDF4;
+${SDF_ENABLEMENT}
 
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;
@@ -138,44 +126,7 @@ float sdfListOfSpheres(vec3 samplePoint, int start, int end) {
 }
 
 float calculateSdfForBlock(vec3 samplePoint, LeafData leaf, inout vec3 color) {
-    float dist1 = sdfListOfSpheres(samplePoint, leaf.start_sdf1, leaf.start_sdf2);
-    float dist2 = sdfListOfSpheres(samplePoint, leaf.start_sdf2, leaf.start_sdf3);
-    float dist3 = sdfListOfSpheres(samplePoint, leaf.start_sdf3, leaf.start_sdf4);
-    float dist4 = sdfListOfSpheres(samplePoint, leaf.start_sdf4, leaf.end_sdf);
-
-    float dist = MAX_DIST;
-    float minDist = MAX_DIST;
-
-    if (enableSDF1) {
-        minDist = min(minDist, dist1);
-        dist = smoothUnion(dist1, dist);
-    }
-    if (enableSDF2) {
-        minDist = min(minDist, dist2);
-        dist = smoothUnion(dist2, dist);
-    }
-    if (enableSDF3) {
-        minDist = min(minDist, dist3);
-        dist = smoothUnion(dist3, dist);
-    }
-    if (enableSDF4) {
-        minDist = min(minDist, dist4);
-        dist = smoothUnion(dist4, dist);
-    }
-
-    if (minDist == dist1) {
-        color = SDF1_color;
-    } else if (minDist == dist2) {
-        color = SDF2_color;
-    } else if (minDist == dist3) {
-        color = SDF3_color;
-    } else if (minDist == dist4) {
-        color = SDF4_color;
-    } else {
-        color = vec3(1.0,0.0,0.0);
-    }
-
-    return dist;
+${CALCULATE_SDF_FOR_BLOCK_FUNCTION}
 }
 
 vec2 intersectAABB(vec3 rayOrigin, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
@@ -418,21 +369,9 @@ mat4 viewMatrixs(vec3 eye, vec3 center, vec3 up) {
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 {
-    float angle = iTime*0.5;
+    vec3 dir = normalize(rayDirection(45.0, iResolution.xy, fragCoord));
 
-    mat3 rotation = mat3(
-
-            vec3(cos(angle), 0.0, -sin(angle)),
-
-            vec3(0.0, 1.0, 0.0),
-
-            vec3(sin(angle), 0.0, cos(angle))
-
-        );
-
-    vec3 dir = normalize(rotation*rayDirection(45.0, iResolution.xy, fragCoord));
-
-    vec3 eye = rotation*vec3(0.0,0.0,1000.0);
+    vec3 eye = vec3(0.0,0.0,1000.0);
 
     vec3 K_d = vec3(0.7, 0.7, 0.7);
     float dist = shortestDistanceToSurface(eye, dir, MIN_DIST, MAX_DIST, K_d);

@@ -18,7 +18,7 @@ const int AMOUNT_OF_NODES_IN_TREE = 9;
 // TODO: Assume complete for now.
 const int AMOUNT_OF_LEAVES_IN_TREE = 8;
 
-const int TOTAL_SPHERES = 862;
+const int TOTAL_SPHERES = 1821;
 
 struct Node {
     vec3 bbox;
@@ -27,17 +27,16 @@ struct Node {
 };
 
 struct LeafData {
-    int start_sdf1;
-    int start_sdf2;
-    int start_sdf3;
-    int start_sdf4;
-    int end_sdf;
+	int start_sdf0;
+	int start_sdf1;
+	int start_sdf2;
+	int end_sdf;
 };
 
-const vec3 SDF1_color = vec3(0.0, 1.0, 239.0/255.0);
-const vec3 SDF2_color = vec3(199.0/255.0, 234.0/255.0, 70.0/255.0);
-const vec3 SDF3_color = vec3(251.0/255.0, 251.0/255.0, 148.0/255.0);
-const vec3 SDF4_color = vec3(159.0/255.0, 129.0/255.0, 112.0/255.0);
+
+const vec3 SDF0_color = vec3(0.0, 1.0, 0.9372559);
+const vec3 SDF1_color = vec3(0.78039215686274, 0.917647, 0.2745);
+const vec3 SDF2_color = vec3(0.98431372549, 0.98431372549, 0.58);
 
 // Memory array Distribution
 // level 0 :  [0 root]
@@ -59,10 +58,10 @@ uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
 uniform sampler2D spheres;
 
 // Uniforms to enable and disable sdfs on the fly.
+
+uniform bool enableSDF0;
 uniform bool enableSDF1;
 uniform bool enableSDF2;
-uniform bool enableSDF3;
-uniform bool enableSDF4;
 
 /**
  * Signed distance function for a sphere centered at the origin with radius 1.0;
@@ -138,44 +137,37 @@ float sdfListOfSpheres(vec3 samplePoint, int start, int end) {
 }
 
 float calculateSdfForBlock(vec3 samplePoint, LeafData leaf, inout vec3 color) {
-    float dist1 = sdfListOfSpheres(samplePoint, leaf.start_sdf1, leaf.start_sdf2);
-    float dist2 = sdfListOfSpheres(samplePoint, leaf.start_sdf2, leaf.start_sdf3);
-    float dist3 = sdfListOfSpheres(samplePoint, leaf.start_sdf3, leaf.start_sdf4);
-    float dist4 = sdfListOfSpheres(samplePoint, leaf.start_sdf4, leaf.end_sdf);
 
-    float dist = MAX_DIST;
-    float minDist = MAX_DIST;
-
-    if (enableSDF1) {
-        minDist = min(minDist, dist1);
-        dist = smoothUnion(dist1, dist);
-    }
-    if (enableSDF2) {
-        minDist = min(minDist, dist2);
-        dist = smoothUnion(dist2, dist);
-    }
-    if (enableSDF3) {
-        minDist = min(minDist, dist3);
-        dist = smoothUnion(dist3, dist);
-    }
-    if (enableSDF4) {
-        minDist = min(minDist, dist4);
-        dist = smoothUnion(dist4, dist);
-    }
-
-    if (minDist == dist1) {
-        color = SDF1_color;
-    } else if (minDist == dist2) {
-        color = SDF2_color;
-    } else if (minDist == dist3) {
-        color = SDF3_color;
-    } else if (minDist == dist4) {
-        color = SDF4_color;
-    } else {
-        color = vec3(1.0,0.0,0.0);
-    }
-
-    return dist;
+	float dist0 = sdfListOfSpheres(samplePoint, leaf.start_sdf0, leaf.start_sdf1);
+	float dist1 = sdfListOfSpheres(samplePoint, leaf.start_sdf1, leaf.start_sdf2);
+	float dist2 = sdfListOfSpheres(samplePoint, leaf.start_sdf2, leaf.end_sdf);
+	float dist = MAX_DIST;
+	float minDist = MAX_DIST;
+	if (enableSDF0) {
+		minDist = min(minDist, dist0);
+		dist = smoothUnion(dist0, dist);
+	}
+	if (enableSDF1) {
+		minDist = min(minDist, dist1);
+		dist = smoothUnion(dist1, dist);
+	}
+	if (enableSDF2) {
+		minDist = min(minDist, dist2);
+		dist = smoothUnion(dist2, dist);
+	}
+	if (minDist == dist0) {
+		color = SDF0_color;
+	}
+	else if (minDist == dist1) {
+		color = SDF1_color;
+	}
+	else if (minDist == dist2) {
+		color = SDF2_color;
+	}
+	else {
+		color = vec3(1.0,0.0,0.0);
+	}
+	return dist;
 }
 
 vec2 intersectAABB(vec3 rayOrigin, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
