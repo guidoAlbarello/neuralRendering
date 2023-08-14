@@ -20,12 +20,15 @@ class BigTerrainToCreateData:
 
 class CreateShaderCommand:
     def __init__(self, scene: NewSceneFromFile, id: str,
-                 shader_generated_code_file_path: str, material_generated_code_file_path: str,
-                 big_terrain_from_file_data: BigTerrainToCreateData, final_big_terrain_data: BigTerrainToCreateData):
+                 big_terrain_from_file_data: BigTerrainToCreateData,
+                 final_big_terrain_data: BigTerrainToCreateData,
+                 shader_generated_code_file_path: str = None, material_generated_code_file_path: str = None,
+                 model_generated_code_file_path: str = None):
         self.scene = scene
         self.scene_id = id
         self.shader_generated_code_file_path = shader_generated_code_file_path
         self.material_generated_code_file_path = material_generated_code_file_path
+        self.model_generated_code_file_path = model_generated_code_file_path
         self.big_terrain_from_file_data = big_terrain_from_file_data
         self.final_big_terrain_data = final_big_terrain_data
 
@@ -33,6 +36,7 @@ class CreateShaderCommand:
 def create_shader_from_path(command: CreateShaderCommand):
     # Read file
     big_terrain_from_file = command.big_terrain_from_file_data
+    print(command.big_terrain_from_file_data)
     density_cube = BigTerrain(big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z,
                               big_terrain_from_file.block_width, big_terrain_from_file.points_per_dimention,
                               big_terrain_from_file.max_spheres, command.scene.internal_values, command.scene.colors)
@@ -50,9 +54,15 @@ def create_shader_from_path(command: CreateShaderCommand):
     subdivided_terrain.calculate_sdf()
     subdivided_terrain.compute_edits()
     subdivided_terrain.build_bvh()
-    # Generate shader and material
-    subdivided_terrain.generate_shader_with_textures(command.shader_generated_code_file_path,
+
+    if command.model_generated_code_file_path is not None:
+        subdivided_terrain.generate_model(command.model_generated_code_file_path)
+    elif command.shader_generated_code_file_path is not None and command.material_generated_code_file_path is not None:
+        # Generate shader and material
+        subdivided_terrain.generate_shader_with_textures(command.shader_generated_code_file_path,
                                                      command.material_generated_code_file_path)
+    else:
+        subdivided_terrain.generate_model()
 
 
 def create_shader_from_file(command: CreateShaderCommand):
@@ -80,9 +90,15 @@ def create_shader_from_file(command: CreateShaderCommand):
     subdivided_terrain.calculate_sdf()
     subdivided_terrain.compute_edits()
     subdivided_terrain.build_bvh()
-    # Generate shader and material
-    subdivided_terrain.generate_shader_with_textures(command.shader_generated_code_file_path,
-                                                     command.material_generated_code_file_path)
+
+    if command.model_generated_code_file_path is not None:
+        subdivided_terrain.generate_model(command.model_generated_code_file_path)
+    elif command.shader_generated_code_file_path is not None and command.material_generated_code_file_path is not None:
+        # Generate shader and material
+        subdivided_terrain.generate_shader_with_textures(command.shader_generated_code_file_path,
+                                                         command.material_generated_code_file_path)
+    else:
+        subdivided_terrain.generate_model()
 
 
 def create_shader(command: CreateShaderCommand):
@@ -104,5 +120,12 @@ def create_shader(command: CreateShaderCommand):
     subdivided_terrain.calculate_sdf()
     subdivided_terrain.compute_edits()
     subdivided_terrain.build_bvh()
-    subdivided_terrain.generate_shader_with_textures(command.shader_generated_code_file_path,
-                                                     command.material_generated_code_file_path)
+
+    if command.model_generated_code_file_path is not None:
+        subdivided_terrain.generate_model(command.model_generated_code_file_path)
+    elif command.shader_generated_code_file_path is not None and command.material_generated_code_file_path is not None:
+        # Generate shader and material
+        subdivided_terrain.generate_shader_with_textures(command.shader_generated_code_file_path,
+                                                         command.material_generated_code_file_path)
+    else:
+        subdivided_terrain.generate_model()

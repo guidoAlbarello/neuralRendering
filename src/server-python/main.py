@@ -12,6 +12,7 @@ app = FastAPI()
 
 shader_file_path = "./scene-files/{id}/raymarcher.glsl"
 material_file_path = "./scene-files/{id}/RaymarcherMaterial.js"
+model_file_path = "./scene-files/{id}/Model.js"
 
 @app.get("/")
 async def redirect():
@@ -55,10 +56,13 @@ async def create(scene: NewSceneFromFile, background_tasks: BackgroundTasks):
 
     shader_generated_code_file_path = shader_file_path.replace("{id}", id)
     material_generated_code_file_path = material_file_path.replace("{id}", id)
+    model_generated_code_file_path = model_file_path.replace("{id}", id)
     big_terrain_from_file_data = BigTerrainToCreateData.from_input_data(scene.big_terrain_data)  # BigTerrainToCreateData(1, 64, 64.0, 100)
     final_big_terrain_data = BigTerrainToCreateData.from_input_data(scene.final_big_terrain_data)  # BigTerrainToCreateData(1, 4, 64.0, 100)
-    command = CreateShaderCommand(scene, id, shader_generated_code_file_path, material_generated_code_file_path,
-                                  big_terrain_from_file_data, final_big_terrain_data)
+    command = CreateShaderCommand(scene, id,
+                                  big_terrain_from_file_data, final_big_terrain_data,
+                                  shader_generated_code_file_path, material_generated_code_file_path,
+                                  model_generated_code_file_path)
     if (scene.file is not None):
         background_tasks.add_task(create_shader_from_file, command)
     elif(scene.file_path is not None):
@@ -81,7 +85,12 @@ def find_scene(id: str):
     generated_material_abs_file_path = os.path.abspath(material_file_path.replace("{id}", id))
     generated_material_file_path = generated_material_abs_file_path if os.path.isfile(generated_material_abs_file_path) else None
 
-    return {"shader": generated_shader_file_path, "material": generated_material_file_path}
+    generated_model_abs_file_path = os.path.abspath(model_file_path.replace("{id}", id))
+    generated_model_file_path = generated_model_abs_file_path if os.path.isfile(generated_model_abs_file_path) else None
+
+    return {"shader": generated_shader_file_path,
+            "material": generated_material_file_path,
+            "model": generated_model_file_path}
 
 
 @app.get("/scenes/{id}/shader", response_class=FileResponse)
@@ -107,6 +116,17 @@ def read_material(id: str):
         return _download(generated_material_file_path, "RaymarcherMaterial.js")
 
     raise HTTPException(status_code=404, detail="Material not found")
+
+@app.get("/scenes/{id}/model", response_class=FileResponse)
+def read_material(id: str):
+    """
+    If model was created, it is returned
+    """
+    generated_model_file_path = model_file_path.replace("{id}", id)
+    if os.path.isfile(generated_model_file_path):
+        return _download(generated_model_file_path, "Model.js")
+
+    raise HTTPException(status_code=404, detail="Model not found")
 
 
 def _download(file_path, downloaded_filename):

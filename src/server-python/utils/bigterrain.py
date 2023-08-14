@@ -520,6 +520,18 @@ class BigTerrain:
             sdf_enablements += f"\nenableSDF{index}: {{ value: true }},"
         return sdf_enablements
 
+    def sdf_enablement_ui_statement_to_string(self):
+        sdf_enablements = ""
+        for index in range(len(self.internal_values)):
+            sdf_enablements += f"\nenableSDF{index}: true,"
+        return sdf_enablements
+
+    def sdf_enablement_update_statement_to_string(self):
+        sdf_enablements = ""
+        for index in range(len(self.internal_values)):
+            sdf_enablements += f"\nmesh.current.material.uniforms.enableSDF{index}.value = " \
+                               f"props.controls.enableSDF{index};"
+        return sdf_enablements
 
     def leaf_data_struct_to_string(self):
         struct = "struct LeafData {"
@@ -714,6 +726,83 @@ class BigTerrain:
             lines = f.readlines()
             lines_to_write = map(lambda x: self.replace_parameters(x, CONFIG_PARAMETERS_MATERIAL), lines)
             with open('./generatedCode/RaymarcherMaterial.js', 'w') as fw:
+                fw.writelines(lines_to_write)
+
+    def generate_model(self, model_generated_code_file_path='./generatedCode/Model.js'):
+        # Material
+        nodes = []
+        leaf_data = []
+        spheres = []
+
+        stack = []
+        stack.append(self.bvh)
+        spheres_pointer = 0
+        texture_pointer = 0
+        while len(stack) > 0:
+            currentNode = stack.pop(0)
+            # Add nodes.
+            nodes.append(self.node_to_string(currentNode))
+
+            # Fifo order. Leaf nodes are traversed in order.
+            if (currentNode.depth == self.bvh_depth):
+                # Add spheres.
+                sdf_starts = []
+                c = spheres_pointer
+                for i in range(len(self.internal_values)):
+                    start_sdf = c
+                    for s in currentNode.sphere_data[i][0]:
+                        spheres.append("data[{}] = {}; data[{}] = {}; data[{}] = {}; data[{}] = {};"
+                                       .format(texture_pointer, s[0][0],  # x
+                                               texture_pointer + 1, s[0][1],  # y
+                                               texture_pointer + 2, s[0][2],  # z
+                                               texture_pointer + 3, s[1]))  # radio
+                        c = c + 1
+                        texture_pointer += 4
+                    sdf_starts.append(start_sdf)
+                sdf_starts.append(c)
+
+                spheres_pointer = c
+
+                # Generate leaf_data.
+                leaf_data.append(self.leaf_data_to_string(sdf_starts))
+
+            else:
+                # Traverse children
+                for i in range(8):
+                    stack.append(currentNode.children[i])
+
+        # Join strings.
+        nodes_string = ','.join(nodes)
+        leaf_data_string = ','.join(leaf_data)
+        spheres_string = '\n'.join(spheres)
+
+        CONFIG_PARAMETERS = {
+            # shader data
+            '${SDF_ENABLEMENT_UPDATE_STATEMENT}': self.sdf_enablement_update_statement_to_string(),
+            '${SDF_ENABLEMENT_UI_STATEMENT}': self.sdf_enablement_ui_statement_to_string(),
+            '${MAX_SPHERES_PER_OCTANT}': str(self.max_spheres_per_block),
+            '${MAX_TREE_DEPTH}': str(self.bvh_depth),
+            '${AMOUNT_OF_NODES_IN_TREE}': str(int((8 ** (self.bvh_depth + 1) - 1) / 7)),
+            '${AMOUNT_OF_LEAVES_IN_TREE}': str(8 ** self.bvh_depth),
+            '${TOTAL_SPHERES}': str(self.get_total_spheres()),
+            '${SDFS_COLORS}': self.sdf_colors_to_string(),
+            '${SMOOTH_UNION_K}': '10.0',
+            '${SDF_ENABLEMENT}': self.sdf_enablements_to_string(),
+            '${LEAF_DATA_STRUCT}': self.leaf_data_struct_to_string(),
+            '${CALCULATE_SDF_FOR_BLOCK_FUNCTION}': self.calculate_sdf_for_block_function_to_string(),
+            # material data
+            '${NODES}': nodes_string,
+            '${LEAF_DATA}': leaf_data_string,
+            '${SPHERES_DATA}': spheres_string,
+            '${TOTAL_SPHERES}': str(self.get_total_spheres()),
+            '${SDF_ENABLEMENT_TRUE}': self.sdf_enablement_true_to_string()
+        }
+
+        with open('./templates/materials/Model.js') as f:
+            lines = f.readlines()
+            lines_to_write = map(lambda x: self.replace_parameters(x, CONFIG_PARAMETERS), lines)
+            os.makedirs(os.path.dirname(model_generated_code_file_path), exist_ok=True)
+            with open(model_generated_code_file_path, 'w') as fw:
                 fw.writelines(lines_to_write)
 
     def evaluate_edits_error_per_block(self, block, i, j, k):
