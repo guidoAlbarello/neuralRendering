@@ -608,7 +608,7 @@ ${CALCULATE_SDF_FOR_BLOCK_FUNCTION}
     void main() {
          mainImage(gl_FragColor, gl_FragCoord.xy);
       }
-
+    `;
     const options = useMemo(() => {
     		return {
     			${SDF_ENABLEMENT_UI_STATEMENT}
