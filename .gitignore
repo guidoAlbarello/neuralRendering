@@ -23,3 +23,6 @@ yarn-debug.log*
 yarn-error.log*
 
 /venv
+/src/server-python/fastapi-env
+/src/server-python/generatedCode
+/src/server-python/scene-files
