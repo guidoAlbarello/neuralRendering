@@ -16,6 +16,9 @@ function App() {
           <li>
             <a href="/docs">Docs</a>
           </li>
+          <li>
+            <a href="/upload">Upload</a>
+          </li>
       </ul>
     </nav>
       <Outlet/>
