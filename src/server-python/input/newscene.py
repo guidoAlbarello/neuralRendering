@@ -1,6 +1,17 @@
 from pydantic import BaseModel
 from typing import Optional
-from fastapi import UploadFile
+from fastapi import Form
+from typing import List
+import json
+
+def form_body(cls):
+    cls.__signature__ = cls.__signature__.replace(
+        parameters=[
+            arg.replace(default=Form(None))
+            for arg in cls.__signature__.parameters.values()
+        ]
+    )
+    return cls
 
 
 class BigTerrainData(BaseModel):
@@ -10,11 +21,36 @@ class BigTerrainData(BaseModel):
     max_spheres: int
 
 
+
+@form_body
 class NewSceneFromFile(BaseModel):
-    internal_values: Optional[list[list[float]]]  # [[0, 1],[1,2]]
-    colors: Optional[list[list[float]]]  # [[1.0,1.0,1.0], [...]]
+    name: str
+    description: Optional[str]
+    internal_values: Optional[List[List[float]]] # [[0, 1],[1,2]]
+    colors: Optional[List[List[float]]] # [[1.0,1.0,1.0], [...]]
     file_path: Optional[str]
-    file: Optional[UploadFile]
     big_terrain_data: BigTerrainData
     final_big_terrain_data: BigTerrainData
     subdivision_level: int
+
+    def __init__(self, name: str, description: Optional[str], internal_values: str, colors: str, file_path: Optional[str], big_terrain_data: str = None, final_big_terrain_data: str = None, subdivision_level: int = 1):
+        super().__init__(
+            name = name,
+            description = description,
+            internal_values = self._parse_list_of_floats(internal_values), 
+            colors = self._parse_list_of_floats(colors), 
+            file_path = file_path, 
+            big_terrain_data = self._parse_big_terrain_data(big_terrain_data), 
+            final_big_terrain_data = self._parse_big_terrain_data(final_big_terrain_data), 
+            subdivision_level=subdivision_level
+        )
+
+    def _parse_list_of_floats(self, list_of_string: List[str]): # colors = ["1.0,1.0,1.0", "..."]
+        lala = [[float(string_to_float) for string_to_float in string.split(",")] for string in list_of_string.split("|")]
+        print(lala)
+        return lala
+    
+    def _parse_big_terrain_data(self, big_terrain: str):
+        return json.loads(big_terrain, object_hook=lambda d: BigTerrainData(**d))
+
+

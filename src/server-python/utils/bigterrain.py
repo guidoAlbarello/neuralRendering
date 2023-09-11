@@ -728,7 +728,17 @@ class BigTerrain:
             with open('./generatedCode/RaymarcherMaterial.js', 'w') as fw:
                 fw.writelines(lines_to_write)
 
-    def generate_model(self, model_generated_code_file_path='./generatedCode/Model.js'):
+    def generate_model_and_save_in_file(self, model_generated_code_file_path='./generatedCode/Model.js'):
+        CONFIG_PARAMETERS = self.generate_model()
+
+        with open('./templates/materials/Model.js') as f:
+            lines = f.readlines()
+            lines_to_write = map(lambda x: self.replace_parameters(x, CONFIG_PARAMETERS), lines)
+            os.makedirs(os.path.dirname(model_generated_code_file_path), exist_ok=True)
+            with open(model_generated_code_file_path, 'w') as fw:
+                fw.writelines(lines_to_write)
+
+    def generate_model(self):
         # Material
         nodes = []
         leaf_data = []
@@ -778,32 +788,27 @@ class BigTerrain:
 
         CONFIG_PARAMETERS = {
             # shader data
-            '${SDF_ENABLEMENT_UPDATE_STATEMENT}': self.sdf_enablement_update_statement_to_string(),
-            '${SDF_ENABLEMENT_UI_STATEMENT}': self.sdf_enablement_ui_statement_to_string(),
-            '${MAX_SPHERES_PER_OCTANT}': str(self.max_spheres_per_block),
-            '${MAX_TREE_DEPTH}': str(self.bvh_depth),
-            '${AMOUNT_OF_NODES_IN_TREE}': str(int((8 ** (self.bvh_depth + 1) - 1) / 7)),
-            '${AMOUNT_OF_LEAVES_IN_TREE}': str(8 ** self.bvh_depth),
-            '${TOTAL_SPHERES}': str(self.get_total_spheres()),
-            '${SDFS_COLORS}': self.sdf_colors_to_string(),
-            '${SMOOTH_UNION_K}': '10.0',
-            '${SDF_ENABLEMENT}': self.sdf_enablements_to_string(),
-            '${LEAF_DATA_STRUCT}': self.leaf_data_struct_to_string(),
-            '${CALCULATE_SDF_FOR_BLOCK_FUNCTION}': self.calculate_sdf_for_block_function_to_string(),
+            'SDF_ENABLEMENT_UPDATE_STATEMENT': self.sdf_enablement_update_statement_to_string(),
+            'SDF_ENABLEMENT_UI_STATEMENT': self.sdf_enablement_ui_statement_to_string(),
+            'MAX_SPHERES_PER_OCTANT': str(self.max_spheres_per_block),
+            'MAX_TREE_DEPTH': str(self.bvh_depth),
+            'AMOUNT_OF_NODES_IN_TREE': str(int((8 ** (self.bvh_depth + 1) - 1) / 7)),
+            'AMOUNT_OF_LEAVES_IN_TREE': str(8 ** self.bvh_depth),
+            'TOTAL_SPHERES': str(self.get_total_spheres()),
+            'SDFS_COLORS': self.sdf_colors_to_string(),
+            'SMOOTH_UNION_K': '10.0',
+            'SDF_ENABLEMENT': self.sdf_enablements_to_string(),
+            'LEAF_DATA_STRUCT': self.leaf_data_struct_to_string(),
+            'CALCULATE_SDF_FOR_BLOCK_FUNCTION': self.calculate_sdf_for_block_function_to_string(),
             # material data
-            '${NODES}': nodes_string,
-            '${LEAF_DATA}': leaf_data_string,
-            '${SPHERES_DATA}': spheres_string,
-            '${TOTAL_SPHERES}': str(self.get_total_spheres()),
-            '${SDF_ENABLEMENT_TRUE}': self.sdf_enablement_true_to_string()
+            'NODES': nodes_string,
+            'LEAF_DATA': leaf_data_string,
+            'SPHERES_DATA': spheres_string,
+            'TOTAL_SPHERES': str(self.get_total_spheres()),
+            'SDF_ENABLEMENT_TRUE': self.sdf_enablement_true_to_string()
         }
 
-        with open('./templates/materials/Model.js') as f:
-            lines = f.readlines()
-            lines_to_write = map(lambda x: self.replace_parameters(x, CONFIG_PARAMETERS), lines)
-            os.makedirs(os.path.dirname(model_generated_code_file_path), exist_ok=True)
-            with open(model_generated_code_file_path, 'w') as fw:
-                fw.writelines(lines_to_write)
+        return CONFIG_PARAMETERS
 
     def evaluate_edits_error_per_block(self, block, i, j, k):
         s = 0
