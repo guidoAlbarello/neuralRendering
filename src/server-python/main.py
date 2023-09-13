@@ -103,50 +103,6 @@ def delete_scene(id:str, db: Session = Depends(get_db)):
    return {"delete status": "success"}
 
 
-
-@app.get("/scenes/{id}/shader", response_class=FileResponse)
-def read_shader(id: str):
-    """
-    If shader was created, it is returned
-    """
-    generated_shader_file_path = shader_file_path.replace("{id}", id)
-    if os.path.isfile(generated_shader_file_path):
-        response = download(generated_shader_file_path, "raymarcher.glsl")
-        return response
-
-    raise HTTPException(status_code=404, detail="Shader not found")
-
-
-@app.get("/scenes/{id}/material", response_class=FileResponse)
-def read_material(id: str):
-    """
-    If material was created, it is returned
-    """
-    generated_material_file_path = material_file_path.replace("{id}", id)
-    if os.path.isfile(generated_material_file_path):
-        return _download(generated_material_file_path, "RaymarcherMaterial.js")
-
-    raise HTTPException(status_code=404, detail="Material not found")
-
-@app.get("/scenes/{id}/model", response_class=FileResponse)
-def read_material(id: str):
-    """
-    If model was created, it is returned
-    """
-    generated_model_file_path = model_file_path.replace("{id}", id)
-    if os.path.isfile(generated_model_file_path):
-        return _download(generated_model_file_path, "Model.js")
-
-    raise HTTPException(status_code=404, detail="Model not found")
-
-
-def _download(file_path, downloaded_filename):
-    """
-    Download file for given path.
-    """
-    return FileResponse(path = file_path, media_type='application/octet-stream',filename=downloaded_filename)
-
-
 if __name__ == '__main__':
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
