@@ -28,18 +28,16 @@ class NewSceneFromFile(BaseModel):
     description: Optional[str]
     internal_values: Optional[List[List[float]]] # [[0, 1],[1,2]]
     colors: Optional[List[List[float]]] # [[1.0,1.0,1.0], [...]]
-    file_path: Optional[str]
     big_terrain_data: BigTerrainData
     final_big_terrain_data: BigTerrainData
     subdivision_level: int
 
-    def __init__(self, name: str, description: Optional[str], internal_values: str, colors: str, file_path: Optional[str], big_terrain_data: str = None, final_big_terrain_data: str = None, subdivision_level: int = 1):
+    def __init__(self, name: str, description: Optional[str], internal_values: str, colors: str, big_terrain_data: str = None, final_big_terrain_data: str = None, subdivision_level: int = 1):
         super().__init__(
             name = name,
             description = description,
             internal_values = self._parse_list_of_floats(internal_values), 
-            colors = self._parse_list_of_floats(colors), 
-            file_path = file_path, 
+            colors = self._parse_list_of_floats(colors),
             big_terrain_data = self._parse_big_terrain_data(big_terrain_data), 
             final_big_terrain_data = self._parse_big_terrain_data(final_big_terrain_data), 
             subdivision_level=subdivision_level

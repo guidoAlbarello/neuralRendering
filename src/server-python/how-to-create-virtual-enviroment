@@ -14,6 +14,8 @@ $ pip install "uvicorn[standard]"
 $ pip install matplotlib
 $ pip install pandas
 $ pip install noise
+$ pip install python-multipart
+$ pip install -r requirements.txt
 
 
 # Levantar el servidor ejecutamos el main.py o lo levantamos directo

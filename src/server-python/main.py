@@ -1,12 +1,10 @@
 from typing import Optional, List
-from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, Depends, File, Form
+from fastapi import FastAPI, BackgroundTasks, UploadFile, Depends, File
 from starlette.responses import RedirectResponse
 from input.newscene import NewSceneFromFile, BigTerrainData
-from utils.idcreator import create_id
-from fastapi.responses import FileResponse
 import os
 import uvicorn
-from utils.shadercreator import create_shader_from_path, create_shader_from_file, create_shader, CreateShaderCommand, BigTerrainToCreateData
+from utils.shadercreator import create_shader_from_file, create_shader, CreateShaderCommand, BigTerrainToCreateData
 from db.db import *
 from db.models.Scene import Scene
 
@@ -38,7 +36,6 @@ async def create(background_tasks: BackgroundTasks,
       "internal_values": "0.0,0.25|0.25,0.51|0.51,0.81|0.81,1.1", // [[0.0, 0.25], [0.25, 0.51], [0.51, 0.81], [0.81, 1.1]]
       "colors": "0,1.0,0.9372559|0.78039215686274,0.917647,0.2745|0.98431372549,0.98431372549,0.58|0.6235294117647,0.5,0.4392156862745",
                  //[[0, 1.0, 0.9372559], [0.78039215686274, 0.917647, 0.2745],[0.98431372549, 0.98431372549, 0.58], [0.6235294117647, 0.5, 0.4392156862745]],
-      "file_path": "string",
       "big_terrain_data": {
         "dim_x_y_z": 1,
         "block_width": 64.0,
@@ -54,23 +51,16 @@ async def create(background_tasks: BackgroundTasks,
       "subdivision_level": 1
     }
     '''
-    # create scene id
-    # id = create_id()
     created_scene = Scene(name = scene.name, description = scene.description)
     db.add(created_scene)
     db.commit()
 
-    # shader_generated_code_file_path = shader_file_path.replace("{id}", id)
-    # material_generated_code_file_path = material_file_path.replace("{id}", id)
-    # model_generated_code_file_path = model_file_path.replace("{id}", id)
     big_terrain_from_file_data = BigTerrainToCreateData.from_input_data(scene.big_terrain_data)  # BigTerrainToCreateData(1, 64, 64.0, 100)
     final_big_terrain_data = BigTerrainToCreateData.from_input_data(scene.final_big_terrain_data)  # BigTerrainToCreateData(1, 4, 64.0, 100)
     command = CreateShaderCommand(scene, file, created_scene.id,
                                   big_terrain_from_file_data, final_big_terrain_data)
     if (file is not None):
         background_tasks.add_task(create_shader_from_file, command)
-    elif(scene.file_path is not None):
-        background_tasks.add_task(create_shader_from_path, command)
     else:
         # random BigTerrain
         background_tasks.add_task(create_shader, command)

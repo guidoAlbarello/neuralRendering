@@ -39,89 +39,50 @@ class CreateShaderCommand:
         self.final_big_terrain_data = final_big_terrain_data
 
 
-def create_shader_from_path(command: CreateShaderCommand):
-    # Read file
-    big_terrain_from_file = command.big_terrain_from_file_data
-    print(command.big_terrain_from_file_data)
-    density_cube = BigTerrain(big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z,
-                              big_terrain_from_file.block_width, big_terrain_from_file.points_per_dimention,
-                              big_terrain_from_file.max_spheres, command.scene.internal_values, command.scene.colors)
-    scene_df = csv_to_dataframe(command.scene.file_path)
-    density_cube.terrain_octants_matrix.append([])
-    density_cube.terrain_octants_matrix[0].append([])
-    density_cube.terrain_octants_matrix[0][0].append(scene_df)
-
-    # Create final big terrain
-    final_big_terrain = command.final_big_terrain_data
-    subdivided_terrain = BigTerrain(final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z,
-                                    final_big_terrain.block_width, final_big_terrain.points_per_dimention,
-                                    final_big_terrain.max_spheres, command.scene.internal_values, command.scene.colors)
-    subdivided_terrain.generate_from_density_cube(density_cube, command.scene.subdivision_level)
-    subdivided_terrain.calculate_sdf()
-    subdivided_terrain.compute_edits()
-    subdivided_terrain.build_bvh()
-
-    if command.model_generated_code_file_path is not None:
-        subdivided_terrain.generate_model(command.model_generated_code_file_path)
-    elif command.shader_generated_code_file_path is not None and command.material_generated_code_file_path is not None:
-        # Generate shader and material
-        subdivided_terrain.generate_shader_with_textures(command.shader_generated_code_file_path,
-                                                     command.material_generated_code_file_path)
-    else:
-        subdivided_terrain.generate_model()
-
-
-
 def create_shader_from_file(command: CreateShaderCommand):
     db = Session()
     saved_scene = db.query(Scene).filter(Scene.id == command.scene_id).first()
     saved_scene.status = SceneStatus.PROCESSING.name
     db.commit()
-    # Read file
-    big_terrain_from_file = command.big_terrain_from_file_data
-    density_cube = BigTerrain(big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z,
-                              big_terrain_from_file.block_width, big_terrain_from_file.points_per_dimention,
-                              big_terrain_from_file.max_spheres, command.scene.internal_values, command.scene.colors)
+    try:
+        # Read file
+        big_terrain_from_file = command.big_terrain_from_file_data
+        density_cube = BigTerrain(big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z, big_terrain_from_file.dim_x_y_z,
+                                big_terrain_from_file.block_width, big_terrain_from_file.points_per_dimention,
+                                big_terrain_from_file.max_spheres, command.scene.internal_values, command.scene.colors)
 
-    # csv_to_dataframe
-    csv_data = command.file.file.read() # .decode("utf-8")
-    # csv_string_io = StringIO(csv_data)
-    csv_buffer = BytesIO(csv_data)
-    scene_df = pd.read_csv(csv_buffer)
-    csv_buffer.close()
-    command.file.file.close()
+        # csv_to_dataframe
+        csv_data = command.file.file.read()
+        csv_buffer = BytesIO(csv_data)
+        scene_df = pd.read_csv(csv_buffer)
+        csv_buffer.close()
+        command.file.file.close()
 
-    density_cube.terrain_octants_matrix.append([])
-    density_cube.terrain_octants_matrix[0].append([])
-    density_cube.terrain_octants_matrix[0][0].append(scene_df)
+        density_cube.terrain_octants_matrix.append([])
+        density_cube.terrain_octants_matrix[0].append([])
+        density_cube.terrain_octants_matrix[0][0].append(scene_df)
 
-    # Create final big terrain
-    final_big_terrain = command.final_big_terrain_data
-    subdivided_terrain = BigTerrain(final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z,
-                                    final_big_terrain.block_width, final_big_terrain.points_per_dimention,
-                                    final_big_terrain.max_spheres, command.scene.internal_values, command.scene.colors)
-    subdivided_terrain.generate_from_density_cube(density_cube, command.scene.subdivision_level)
-    subdivided_terrain.calculate_sdf()
-    subdivided_terrain.compute_edits()
-    subdivided_terrain.build_bvh()
+        # Create final big terrain
+        final_big_terrain = command.final_big_terrain_data
+        subdivided_terrain = BigTerrain(final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z, final_big_terrain.dim_x_y_z,
+                                        final_big_terrain.block_width, final_big_terrain.points_per_dimention,
+                                        final_big_terrain.max_spheres, command.scene.internal_values, command.scene.colors)
+        subdivided_terrain.generate_from_density_cube(density_cube, command.scene.subdivision_level)
+        subdivided_terrain.calculate_sdf()
+        subdivided_terrain.compute_edits()
+        subdivided_terrain.build_bvh()
 
-    saved_scene.status = SceneStatus.PENDING_TO_SAVE_DATA.name
-    db.commit()
+        saved_scene.status = SceneStatus.PENDING_TO_SAVE_DATA.name
+        db.commit()
 
-
-    if command.model_generated_code_file_path is not None:
-        subdivided_terrain.generate_model(command.model_generated_code_file_path)
-    elif command.shader_generated_code_file_path is not None and command.material_generated_code_file_path is not None:
-        # Generate shader and material
-        subdivided_terrain.generate_shader_with_textures(command.shader_generated_code_file_path,
-                                                         command.material_generated_code_file_path)
-    else:
         config_parameters = subdivided_terrain.generate_model()
         saved_scene.status = SceneStatus.PROCESSED.name
         saved_scene.processed_data = config_parameters
         db.commit()
+    except:
+        saved_scene.status = SceneStatus.FAILED_TO_PROCESS.name
+        db.commit()
         
-
 
 def create_shader(command: CreateShaderCommand):
     # density_cube = BigTerrain(1,1,1,64, 64.0, 100)
