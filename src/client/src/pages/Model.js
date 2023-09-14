@@ -105,10 +105,9 @@ function Terrain(props) {
 
 		mesh.current.material.uniforms.iTime.value = clock.oldTime * 0.00005;
 		mesh.current.material.uniforms.iResolution.value.set(state.size.width, state.size.height, 1);
-		mesh.current.material.uniforms.enableSDF1.value = props.controls.enableSDF1;
-		mesh.current.material.uniforms.enableSDF2.value = props.controls.enableSDF2;
-		mesh.current.material.uniforms.enableSDF3.value = props.controls.enableSDF3;
-		mesh.current.material.uniforms.enableSDF4.value = props.controls.enableSDF4;
+		for (let s in mesh.current.material.uniforms.sdfLayers) {
+			mesh.current.material.uniforms[s].value = props.controls[s];
+		}
 
 		mesh.current.material.uniforms.iMouse.value.set(state.mouse.x, -state.mouse.y, 0.0, 0.0);
 
@@ -487,8 +486,7 @@ vec4 quatFromAxisAngle(vec3 axis, float angle) {
   float sceneSDF(vec3 samplePoint, inout vec3 color, vec3 eye, vec3 dir) {
       float minDist = MAX_DIST;
   
-      
-      float model = treeSdf(samplePoint, minDist, color, eye, dir);
+      float model = sphereSDF(samplePoint, vec3(0.0, 0.0,0.0), 32.0);
     
       return model;
   }
@@ -1086,6 +1084,13 @@ vec4 quatFromAxisAngle(vec3 axis, float angle) {
 		let texture = new THREE.DataTexture(data, 400, 1, THREE.RGBAFormat, THREE.FloatType);
 		texture.needsUpdate = true;
 
+		let sdf_layers = {
+			enableSDF1: {value: true},
+			enableSDF2: {value: true},
+			enableSDF3: {value: true},
+			enableSDF4: {value: true},
+		}
+		
 		axios.get("http://localhost:8888/api/v1/models/shaders")
 			.then(res => {
 				setMaterialProps({
@@ -1105,10 +1110,8 @@ vec4 quatFromAxisAngle(vec3 axis, float angle) {
 							value: texture
 						},
 						movement: { value: 0.0 },
-						enableSDF1: { value: true },
-						enableSDF2: { value: true },
-						enableSDF3: { value: true },
-						enableSDF4: { value: true },
+						sdfLayers: sdf_layers,
+						...sdf_layers,
 						uViewMatrix: {value: new THREE.Matrix3()},
 						uCamera: {value: new THREE.Vector3()}
 					},

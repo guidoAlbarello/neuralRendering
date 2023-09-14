@@ -33,6 +33,7 @@ function FileUploader() {
       formData.append("subdivision_level", 1)
 
     const formData = new FormData();
+    let payload = {}
     formData.append('data', JSON.stringify(payload))
     //formData.append('file', file);
     formData.append('name', name);
