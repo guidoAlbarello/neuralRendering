@@ -10,8 +10,6 @@ from db.models.Scene import Scene
 
 
 app = FastAPI()
-# pip install python-multipart
-# pip install -r requirements.txt
 
 @app.get("/")
 async def redirect():

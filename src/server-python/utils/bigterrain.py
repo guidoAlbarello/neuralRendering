@@ -749,7 +749,6 @@ class BigTerrain:
         stack = []
         stack.append(self.bvh)
         spheres_pointer = 0
-        texture_pointer = 0
         while len(stack) > 0:
             currentNode = stack.pop(0)
             # Add nodes.
@@ -763,13 +762,11 @@ class BigTerrain:
                 for i in range(len(self.internal_values)):
                     start_sdf = c
                     for s in currentNode.sphere_data[i][0]:
-                        spheres.append("data[{}] = {}; data[{}] = {}; data[{}] = {}; data[{}] = {};"
-                                       .format(texture_pointer, s[0][0],  # x
-                                               texture_pointer + 1, s[0][1],  # y
-                                               texture_pointer + 2, s[0][2],  # z
-                                               texture_pointer + 3, s[1]))  # radio
+                        spheres.append(s[0][0]) # x
+                        spheres.append(s[0][1]) # y
+                        spheres.append(s[0][2]) # z
+                        spheres.append(s[1]) # radio
                         c = c + 1
-                        texture_pointer += 4
                     sdf_starts.append(start_sdf)
                 sdf_starts.append(c)
 
@@ -786,7 +783,7 @@ class BigTerrain:
         # Join strings.
         nodes_string = ','.join(nodes)
         leaf_data_string = ','.join(leaf_data)
-        spheres_string = '\n'.join(spheres)
+        # spheres_string = '\n'.join(spheres)
 
         fragment_config_parameters = {
             "${MAX_SPHERES_PER_OCTANT}": str(self.max_spheres_per_block),
@@ -814,8 +811,7 @@ class BigTerrain:
             # material data
             'NODES': nodes_string,
             'LEAF_DATA': leaf_data_string,
-            'SPHERES_DATA': spheres_string,
-            'TOTAL_SPHERES': str(self.get_total_spheres()),
+            'SPHERES_DATA': spheres,
             'SDF_ENABLEMENT_TRUE': self.sdf_enablement_true_to_string()
         }
 
