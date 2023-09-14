@@ -493,6 +493,13 @@ class BigTerrain:
         return "{{\n\t\t\tbbox:new THREE.Vector3({},{},{}),\n\t\t\tcenter: new THREE.Vector3({},{},{}),\n\t\t\tdepth: {}\n\t\t}}".format(
             node.bounding_box[0], node.bounding_box[1], node.bounding_box[2], node.center[0], node.center[1],
             node.center[2], node.depth)
+    
+    def node_to_dict(self, node):
+        return {
+            "bbox": [node.bounding_box[0], node.bounding_box[1], node.bounding_box[2]],
+            "center":[node.center[0], node.center[1], node.center[2]],
+            "depth": node.depth
+        }
 
     def leaf_data_to_string(self, sdf_starts):
         leaf_data = "{"
@@ -761,7 +768,7 @@ class BigTerrain:
         while len(stack) > 0:
             currentNode = stack.pop(0)
             # Add nodes.
-            nodes.append(self.node_to_string(currentNode))
+            nodes.append(self.node_to_dict(currentNode))
 
             # Fifo order. Leaf nodes are traversed in order.
             if (currentNode.depth == self.bvh_depth):
@@ -789,9 +796,6 @@ class BigTerrain:
                 for i in range(8):
                     stack.append(currentNode.children[i])
 
-        # Join strings.
-        nodes_string = ','.join(nodes)
-
         fragment_config_parameters = {
             "${MAX_SPHERES_PER_OCTANT}": str(self.max_spheres_per_block),
             "${MAX_TREE_DEPTH}": str(self.bvh_depth),
@@ -816,7 +820,7 @@ class BigTerrain:
             'SDF_ENABLEMENT_UPDATE_STATEMENT': self.sdf_enablement_update_statement_to_string(),
             'SDF_ENABLEMENT_UI_STATEMENT': self.sdf_enablement_ui_statement_to_string(),
             # material data
-            'NODES': nodes_string,
+            'NODES': nodes,
             'LEAF_DATA': leaf_data,
             'SPHERES_DATA': spheres,
             'SDF_ENABLEMENT_TRUE': self.sdf_enablement_true_to_string()
