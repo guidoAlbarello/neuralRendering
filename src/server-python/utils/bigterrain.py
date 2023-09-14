@@ -503,6 +503,15 @@ class BigTerrain:
         leaf_data += "\n\t\t}"
 
         return leaf_data.replace(f"start_sdf{len(sdf_starts)-1}", "end_sdf")
+    
+    def leaf_data_to_dict(self, sdf_starts):
+        leaf_data = {}
+        for index, start_sdf in enumerate(sdf_starts):
+            leaf_data[f"start_sdf{index}"] = start_sdf
+        
+        leaf_data["end_sdf"] = leaf_data[f"start_sdf{len(sdf_starts)-1}"]
+        del leaf_data[f"start_sdf{len(sdf_starts)-1}"]
+        return leaf_data
 
     def sdf_colors_to_string(self):
         sdf_colors = ""
@@ -773,7 +782,7 @@ class BigTerrain:
                 spheres_pointer = c
 
                 # Generate leaf_data.
-                leaf_data.append(self.leaf_data_to_string(sdf_starts))
+                leaf_data.append(self.leaf_data_to_dict(sdf_starts))
 
             else:
                 # Traverse children
@@ -782,8 +791,6 @@ class BigTerrain:
 
         # Join strings.
         nodes_string = ','.join(nodes)
-        leaf_data_string = ','.join(leaf_data)
-        # spheres_string = '\n'.join(spheres)
 
         fragment_config_parameters = {
             "${MAX_SPHERES_PER_OCTANT}": str(self.max_spheres_per_block),
@@ -810,7 +817,7 @@ class BigTerrain:
             'SDF_ENABLEMENT_UI_STATEMENT': self.sdf_enablement_ui_statement_to_string(),
             # material data
             'NODES': nodes_string,
-            'LEAF_DATA': leaf_data_string,
+            'LEAF_DATA': leaf_data,
             'SPHERES_DATA': spheres,
             'SDF_ENABLEMENT_TRUE': self.sdf_enablement_true_to_string()
         }

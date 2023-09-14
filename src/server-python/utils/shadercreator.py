@@ -79,7 +79,8 @@ def create_shader_from_file(command: CreateShaderCommand):
         saved_scene.status = SceneStatus.PROCESSED.name
         saved_scene.processed_data = config_parameters
         db.commit()
-    except:
+    except Exception as e:
+        print(e)
         saved_scene.status = SceneStatus.FAILED_TO_PROCESS.name
         db.commit()
         
