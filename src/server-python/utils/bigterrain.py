@@ -537,6 +537,12 @@ class BigTerrain:
         for index in range(len(self.internal_values)):
             sdf_enablements += f"\nenableSDF{index}: {{ value: true }},"
         return sdf_enablements
+    
+    def sdf_enablement_true_to_dict(self):
+        sdf_enablements = {}
+        for index in range(len(self.internal_values)):
+            sdf_enablements[f"enableSDF{index}"]= { "value": "true" }
+        return sdf_enablements
 
     def sdf_enablement_ui_statement_to_string(self):
         sdf_enablements = ""
@@ -815,15 +821,14 @@ class BigTerrain:
             fragment_shader.replace(parameter_key, parameter_value)
 
         CONFIG_PARAMETERS = {
-            'FRAGMENT_SHADER': fragment_shader,
             # shader data
-            'SDF_ENABLEMENT_UPDATE_STATEMENT': self.sdf_enablement_update_statement_to_string(),
-            'SDF_ENABLEMENT_UI_STATEMENT': self.sdf_enablement_ui_statement_to_string(),
+            'FRAGMENT_SHADER': fragment_shader,
             # material data
             'NODES': nodes,
             'LEAF_DATA': leaf_data,
             'SPHERES_DATA': spheres,
-            'SDF_ENABLEMENT_TRUE': self.sdf_enablement_true_to_string()
+            # uniforms
+            'SDF_LAYERS': self.sdf_enablement_true_to_dict()
         }
 
         return CONFIG_PARAMETERS
