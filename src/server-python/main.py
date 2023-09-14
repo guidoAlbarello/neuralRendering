@@ -7,9 +7,19 @@ import uvicorn
 from utils.shadercreator import create_shader_from_file, create_shader, CreateShaderCommand, BigTerrainToCreateData
 from db.db import *
 from db.models.Scene import Scene
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins
+)
 
 @app.get("/")
 async def redirect():

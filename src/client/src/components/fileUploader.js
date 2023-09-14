@@ -15,32 +15,30 @@ function FileUploader() {
       return;
     }
 
-    formData.append("internal_values","0.0,0.5|0.5,0.8|0.8,1.0|1.0,1.5")
-    formData.append("colors","0,1.0,0.9372559|0.78039215686274,0.917647,0.2745|0.98431372549,0.98431372549,0.58|0.6235294117647,0.5,0.4392156862745")
-    formData.append("big_terrain_data",{
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('name', name);
+
+    formData.append("internal_values","0,1")
+    formData.append("colors","0,1.0,1.0")
+    formData.append("big_terrain_data",`{
       "dim_x_y_z": 1,
       "block_width": 64.0,
       "points_per_dimention": 64.0,
       "max_spheres": 100
-    })
-    formData.append("final_big_terrain_data", {
+    }`)
+    formData.append("final_big_terrain_data", `{
         "dim_x_y_z": 1,
         "block_width": 64.0,
         "points_per_dimention": 64.0,
         "max_spheres": 100
-      })
+      }`)
       
-      formData.append("subdivision_level", 1)
-
-    const formData = new FormData();
-    let payload = {}
-    formData.append('data', JSON.stringify(payload))
-    //formData.append('file', file);
-    formData.append('name', name);
-    // formData.append('number', number);
+    formData.append("subdivision_level", 1)
+    formData.append("description","lalalalala")
     
     try {
-      const response = await fetch('http://localhost:8000/scenes', {
+      const response = await fetch('http://localhost:8000/data', {
         method: 'POST',
         body: formData,
       });
