@@ -1,4 +1,5 @@
-	import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect} from "react";
+import { useParams } from 'react-router-dom';
 import * as THREE from "three";
 import axios from "axios";
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
@@ -666,6 +667,8 @@ vec4 quatFromAxisAngle(vec3 axis, float angle) {
   `;
 	const [loading, setLoading] = useState(true);
 	const [materialProps, setMaterialProps] = useState(undefined)
+	const params = useParams();
+
 	useEffect(() => {
 		let nodes = [{
 			bbox: new THREE.Vector3(32.0, 32.0, 32.0),
@@ -1091,7 +1094,7 @@ vec4 quatFromAxisAngle(vec3 axis, float angle) {
 			enableSDF4: {value: true},
 		}
 		
-		axios.get("http://localhost:8888/api/v1/models/shaders")
+		axios.get("http://localhost:8000/scenes/"+params.modelId)
 			.then(res => {
 				setMaterialProps({
 					uniforms: {

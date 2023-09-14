@@ -45,14 +45,14 @@ function FileUploader() {
     formData.append("colors","0,1.0,1.0")
     formData.append("big_terrain_data",`{
       "dim_x_y_z": ${1},
-      "block_width": 64.0,
-      "points_per_dimention": 64.0,
+      "block_width": ${64.0},
+      "points_per_dimention": ${64.0},
       "max_spheres": 100
     }`)
     formData.append("final_big_terrain_data", `{
         "dim_x_y_z": 1,
-        "block_width": 64.0,
-        "points_per_dimention": 64.0,
+        "block_width": ${64.0},
+        "points_per_dimention": ${64.0},
         "max_spheres": 100
       }`)
       
