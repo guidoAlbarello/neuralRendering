@@ -5,6 +5,8 @@ import noise
 import re
 import pandas as pd
 import os
+from templates.materials.fragmentshader import fragment_shader_string
+import copy
 
 
 class OctreeNode:
@@ -786,20 +788,29 @@ class BigTerrain:
         leaf_data_string = ','.join(leaf_data)
         spheres_string = '\n'.join(spheres)
 
+        fragment_config_parameters = {
+            "${MAX_SPHERES_PER_OCTANT}": str(self.max_spheres_per_block),
+            "${MAX_TREE_DEPTH}": str(self.bvh_depth),
+            "${AMOUNT_OF_NODES_IN_TREE}": str(int((8 ** (self.bvh_depth + 1) - 1) / 7)),
+            "${AMOUNT_OF_LEAVES_IN_TREE}": str(8 ** self.bvh_depth),
+            "${TOTAL_SPHERES}": str(self.get_total_spheres()),
+            "${LEAF_DATA_STRUCT}": self.leaf_data_struct_to_string(),
+            "${SDFS_COLORS}": self.sdf_colors_to_string(),
+            "${SDF_ENABLEMENT}": self.sdf_enablements_to_string(),
+            "${SMOOTH_UNION_K}": '10.0',
+            "${CALCULATE_SDF_FOR_BLOCK_FUNCTION}": self.calculate_sdf_for_block_function_to_string()
+        }
+
+        fragment_shader = copy.copy(fragment_shader_string)
+
+        for parameter_key, parameter_value in fragment_config_parameters.items():
+            fragment_shader.replace(parameter_key, parameter_value)
+
         CONFIG_PARAMETERS = {
+            'FRAGMENT_SHADER': fragment_shader,
             # shader data
             'SDF_ENABLEMENT_UPDATE_STATEMENT': self.sdf_enablement_update_statement_to_string(),
             'SDF_ENABLEMENT_UI_STATEMENT': self.sdf_enablement_ui_statement_to_string(),
-            'MAX_SPHERES_PER_OCTANT': str(self.max_spheres_per_block),
-            'MAX_TREE_DEPTH': str(self.bvh_depth),
-            'AMOUNT_OF_NODES_IN_TREE': str(int((8 ** (self.bvh_depth + 1) - 1) / 7)),
-            'AMOUNT_OF_LEAVES_IN_TREE': str(8 ** self.bvh_depth),
-            'TOTAL_SPHERES': str(self.get_total_spheres()),
-            'SDFS_COLORS': self.sdf_colors_to_string(),
-            'SMOOTH_UNION_K': '10.0',
-            'SDF_ENABLEMENT': self.sdf_enablements_to_string(),
-            'LEAF_DATA_STRUCT': self.leaf_data_struct_to_string(),
-            'CALCULATE_SDF_FOR_BLOCK_FUNCTION': self.calculate_sdf_for_block_function_to_string(),
             # material data
             'NODES': nodes_string,
             'LEAF_DATA': leaf_data_string,
