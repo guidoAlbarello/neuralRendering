@@ -815,10 +815,10 @@ class BigTerrain:
             "${CALCULATE_SDF_FOR_BLOCK_FUNCTION}": self.calculate_sdf_for_block_function_to_string()
         }
 
-        fragment_shader = copy.copy(fragment_shader_string)
+        fragment_shader = fragment_shader_string
 
         for parameter_key, parameter_value in fragment_config_parameters.items():
-            fragment_shader.replace(parameter_key, parameter_value)
+            fragment_shader = fragment_shader.replace(parameter_key, parameter_value)
 
         CONFIG_PARAMETERS = {
             # shader data

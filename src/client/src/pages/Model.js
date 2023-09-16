@@ -348,7 +348,7 @@ vec4 quatFromAxisAngle(vec3 axis, float angle) {
               // Load spheres in multiple of 32. So that this breaks for the next 32 blocks.
               break;
           }
-          vec4 sphere = texture2D(spheres, vec2(float(i+start)/float(TOTAL_SPHERES), 0.5));
+          vec4 sphere = texture(spheres, vec2(float(i+start)/float(TOTAL_SPHERES), 0.5));
           dist = smoothUnion(sphereSDF(samplePoint, sphere.xyz, sphere.w), dist);
       }
       
@@ -670,6 +670,7 @@ vec4 quatFromAxisAngle(vec3 axis, float angle) {
 	const params = useParams();
 
 	useEffect(() => {
+
 		let nodes = [{
 			bbox: new THREE.Vector3(32.0, 32.0, 32.0),
 			center: new THREE.Vector3(32.0, 32.0, 32.0),
@@ -1084,6 +1085,7 @@ vec4 quatFromAxisAngle(vec3 axis, float angle) {
 		data[1588] = 15.0; data[1589] = 43.0; data[1590] = 13.0; data[1591] = 3.0;
 		data[1592] = 60.0; data[1593] = 63.0; data[1594] = 2.0; data[1595] = 3.0;
 		data[1596] = 17.0; data[1597] = 51.0; data[1598] = 2.0; data[1599] = 3.0;
+		
 		let texture = new THREE.DataTexture(data, 400, 1, THREE.RGBAFormat, THREE.FloatType);
 		texture.needsUpdate = true;
 
@@ -1096,6 +1098,11 @@ vec4 quatFromAxisAngle(vec3 axis, float angle) {
 		
 		axios.get("http://localhost:8000/scenes/"+params.modelId)
 			.then(res => {
+				// console.log(res)
+				// const data = new Float32Array(res.data.processed_data.SPHERES_DATA);
+				// let texture = new THREE.DataTexture(data, 400, 1, THREE.RGBAFormat, THREE.FloatType);
+				// texture.needsUpdate = true;
+				console.log(res.data.processed_data.FRAGMENT_SHADER)
 				setMaterialProps({
 					uniforms: {
 						iTime: { value: 0 },
@@ -1104,21 +1111,21 @@ vec4 quatFromAxisAngle(vec3 axis, float angle) {
 						eyeOrientation: { value: 0 },
 						pos: { value: 0 },
 						node: {
-							value: nodes
+							value: nodes // res.data.processed_data.NODES
 						},
 						leafData: {
-							value: leaf_data
+							value: leaf_data //res.data.processed_data.LEAF_DATA
 						},
 						spheres: {
 							value: texture
 						},
 						movement: { value: 0.0 },
-						sdfLayers: sdf_layers,
-						...sdf_layers,
+						sdfLayers: sdf_layers, // res.data.processed_data.SDF_LAYERS,
+						...sdf_layers, // res.data.processed_data.SDF_LAYERS,
 						uViewMatrix: {value: new THREE.Matrix3()},
 						uCamera: {value: new THREE.Vector3()}
 					},
-					fragmentShader: f
+					fragmentShader: res.data.processed_data.FRAGMENT_SHADER
 				})
 				setLoading(false)
 			})

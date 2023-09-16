@@ -12,8 +12,8 @@ const Models = () => {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data } = await axios.get("http://localhost:8888/api/v1/models");
-        setModels(data.models);
+        const { data } = await axios.get("http://localhost:8000/scenes");
+        setModels(data);
       } catch (err) {
         console.error(err);
       }
@@ -29,7 +29,7 @@ const Models = () => {
    }
 
   const isModelEnabled = (model) => {
-    return model.status !== "SHADER_CREATED"
+    return model.status !== "PROCESSED"
   }
 
   const toggleActiveModel = (model) => {
@@ -38,10 +38,6 @@ const Models = () => {
   }
 
   const activeModelView = (model) => {
-  
-    const getThumbnail = (url) => {
-      return "http://localhost:8888/" + url
-    }
   
     const someEventHandler = (id) => {
       console.log('navigating')
@@ -52,11 +48,10 @@ const Models = () => {
     <>
       <div>
         <p>
-          <b>Model name</b> {model.name}
+          <b>Model: </b> {model.name}
         </p>
-        <img alt='canvas-sample' src={getThumbnail(model.thumbnail_url)}/>
         <p>
-            <b>Brief description</b>
+            <b>Description:</b>
         </p>
         <p>
             <i>{model.description}</i>
