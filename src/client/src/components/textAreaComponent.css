@@ -1,0 +1,11 @@
+.textarea-container {
+    display: flex;
+    align-items: center; /* Vertically centers the label and textarea */
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding-left: 20px; /* Provides some spacing from the left side of the screen */
+}
+
+label {
+    margin-right: 20px; /* Adds some spacing between the label and the textarea */
+}

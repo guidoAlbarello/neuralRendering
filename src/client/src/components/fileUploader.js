@@ -1,63 +1,46 @@
 import React, { useState } from 'react';
+import './fileUploader.css'
+import TextAreaComponent from './TextAreaComponent';
+import TerrainDataComponent from './terrainDataComponent'
+import InternalValuesComponent from './internalValuesComponent';
+import SubdivisionLevel from './subdivisionLevelComponent';
 
 function FileUploader() {
   const [file, setFile] = useState(null);
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+  const [subdivisionLevel, setSubdivisionLevel] = useState('');
+  const [description, setDescription] = useState('');
+  const [rows, setRows] = useState([{ start: '', end: '', color: '#000000' }]);
+  const [bigTerrainData, setBigTerrainData] = useState([{dim_x_y_z: '', block_width: '', points_per_dimension: '', max_spheres: ''}])
+  const [finalBigTerrainData, setFinalBigTerrainData] = useState([{dim_x_y_z: '', block_width: '', points_per_dimension: '', max_spheres: ''}])
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
-  const [inputList, setInputList] = useState([{ value: "" }]);
-
-  // Handle input change event
-  const handleInputChange = (e, index) => {
-      const { name, value } = e.target;
-      const list = [...inputList];
-      list[index][name] = value;
-      setInputList(list);
-  };
-
-  // Handle the click event of the Add button
-  const handleAddInput = () => {
-      setInputList([...inputList, { value: "" }]);
-  };
-
-  // Handle the click event of the Remove button
-  const handleRemoveInput = index => {
-      const list = [...inputList];
-      list.splice(index, 1);
-      setInputList(list);
-  };
-
   const handleUpload = async () => {
-    if (!file || !name || !number) {
+    if (!file || !subdivisionLevel || !description || !bigTerrainData || !finalBigTerrainData || !rows) {
       alert("Please fill out all fields and select a file to upload!");
       return;
     }
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('name', name);
-
-    formData.append("internal_values","0,1")
-    formData.append("colors","0,1.0,1.0")
+    formData.append('internal_values', rows.map(row => `${row.start},${row.end}`).join('|'))
+    formData.append('colors', rows.map(row => hexToRGBFloat(row.color)).join('|'))
     formData.append("big_terrain_data",`{
-      "dim_x_y_z": ${1},
-      "block_width": ${64.0},
-      "points_per_dimention": ${64.0},
-      "max_spheres": 100
+      "dim_x_y_z": ${bigTerrainData.dim_x_y_z},
+      "block_width": ${bigTerrainData.block_width},
+      "points_per_dimention": ${bigTerrainData.points_per_dimension},
+      "max_spheres": ${bigTerrainData.max_spheres}
     }`)
     formData.append("final_big_terrain_data", `{
-        "dim_x_y_z": 1,
-        "block_width": ${64.0},
-        "points_per_dimention": ${64.0},
-        "max_spheres": 100
+      "dim_x_y_z": ${finalBigTerrainData.dim_x_y_z},
+      "block_width": ${finalBigTerrainData.block_width},
+      "points_per_dimention": ${finalBigTerrainData.points_per_dimension},
+      "max_spheres": ${finalBigTerrainData.max_spheres}
       }`)
-      
-    formData.append("subdivision_level", 1)
-    formData.append("description","lalalalala")
+    formData.append("subdivision_level", subdivisionLevel);
+    formData.append("description", description);
     
     try {
       const response = await fetch('http://localhost:8000/scenes', {
@@ -76,48 +59,62 @@ function FileUploader() {
     }
   };
 
+  const handleInputChange = (index, field, value) => {
+      const updatedRows = [...rows];
+      updatedRows[index][field] = value;
+      setRows(updatedRows);
+  };
+
+  const addRow = () => {
+      setRows([...rows, { start: '', end: '', color: '#000000' }]);
+  };
+
+  const removeRow = () => {
+      if (rows.length > 1) {
+          const updatedRows = [...rows];
+          updatedRows.pop();
+          setRows(updatedRows);
+      }
+  };
+
+  const handleBigTerrainDataChange = (field, value) => {
+    const updated = [...bigTerrainData];
+    updated[field] = value;
+    setBigTerrainData(updated);
+  };
+
+  const handleFinalBigTerrainDataChange = (field, value) => {
+    const updated = [...finalBigTerrainData];
+    updated[field] = value;
+    setFinalBigTerrainData(updated);
+  };
+
+  const handleDescriptionChange = (event) => {
+    setDescription(event.target.value)
+  }
+
+  function hexToRGBFloat(hex) {
+    hex = hex.charAt(0) === '#' ? hex.slice(1) : hex;
+    let bigint = parseInt(hex, 16);
+    let r = (bigint >> 16) & 255;
+    let g = (bigint >> 8) & 255;
+    let b = bigint & 255;
+    return [r / 255.0, g / 255.0, b / 255.0];
+  }
+
   return (
     <div>
+      <InternalValuesComponent rows={rows} handleInputChange={handleInputChange} addRow={addRow} removeRow={removeRow}/>
+      <TerrainDataComponent data={bigTerrainData} headline={'Big Terrain Data'} handleChange={handleBigTerrainDataChange}/>
+      <TerrainDataComponent data={finalBigTerrainData} headline={'Final Big Terrain Data'} handleChange={handleFinalBigTerrainDataChange}/>
+      <SubdivisionLevel value={subdivisionLevel} setValue={setSubdivisionLevel} />
+      <TextAreaComponent text={description} label="Description" handleTextChange={handleDescriptionChange} />
       <div>
-        <input 
-          type="text" 
-          placeholder="RGB color" 
-          value={name} 
-          onChange={(e) => setName(e.target.value)} 
-        />
-        <button onClick={(e) => console.log(e)}>+</button>
-        <button onClick={(e) => console.log(e)}>-</button>
-
-        {inputList.map((inputField, index) => (
-                <div key={index}>
-                    <input
-                        type="text"
-                        name="value"
-                        value={inputField.value}
-                        onChange={e => handleInputChange(e, index)}
-                    />
-                    {inputList.length !== 1 && (
-                        <button onClick={() => handleRemoveInput(index)}>-</button>
-                    )}
-                    {inputList.length - 1 === index && (
-                        <button onClick={handleAddInput}>+</button>
-                    )}
-                </div>
-            ))}
-      </div>
-      <div>
-        <input 
-          type="number" 
-          placeholder="Enter Number" 
-          value={number} 
-          onChange={(e) => setNumber(e.target.value)} 
-        />
-      </div>
-      <div>
-        <input type="file" onChange={handleFileChange} />
-      </div>
-      <div>
-        <button onClick={handleUpload}>Upload</button>
+            <label>Add file</label>
+            <input type="file" onChange={handleFileChange} />
+        </div>
+      <div className='form-button'>
+        <button onClick={handleUpload}>Upload model</button>
       </div>
     </div>
   );
