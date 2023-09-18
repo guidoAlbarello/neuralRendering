@@ -44,9 +44,7 @@ class NewSceneFromFile(BaseModel):
         )
 
     def _parse_list_of_floats(self, list_of_string: List[str]): # colors = ["1.0,1.0,1.0", "..."]
-        lala = [[float(string_to_float) for string_to_float in string.split(",")] for string in list_of_string.split("|")]
-        print(lala)
-        return lala
+        return [[float(string_to_float) for string_to_float in string.split(",")] for string in list_of_string.split("|")]
     
     def _parse_big_terrain_data(self, big_terrain: str):
         return json.loads(big_terrain, object_hook=lambda d: BigTerrainData(**d))

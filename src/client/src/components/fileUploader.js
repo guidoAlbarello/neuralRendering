@@ -4,41 +4,45 @@ import TextAreaComponent from './TextAreaComponent';
 import TerrainDataComponent from './terrainDataComponent'
 import InternalValuesComponent from './internalValuesComponent';
 import SubdivisionLevel from './subdivisionLevelComponent';
+import StringInputComponent from './stringInputComponent';
 
 function FileUploader() {
+  const [sceneName, setSceneName] = useState('');
   const [file, setFile] = useState(null);
   const [subdivisionLevel, setSubdivisionLevel] = useState('');
   const [description, setDescription] = useState('');
   const [rows, setRows] = useState([{ start: '', end: '', color: '#000000' }]);
-  const [bigTerrainData, setBigTerrainData] = useState([{dim_x_y_z: '', block_width: '', points_per_dimension: '', max_spheres: ''}])
-  const [finalBigTerrainData, setFinalBigTerrainData] = useState([{dim_x_y_z: '', block_width: '', points_per_dimension: '', max_spheres: ''}])
+  const [bigTerrainData, setBigTerrainData] = useState([{dim_x_y_z: '', block_width: '', points_per_dimension: '', max_spheres: ''}]);
+  const [finalBigTerrainData, setFinalBigTerrainData] = useState([{dim_x_y_z: '', block_width: '', points_per_dimension: '', max_spheres: ''}]);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
   const handleUpload = async () => {
-    if (!file || !subdivisionLevel || !description || !bigTerrainData || !finalBigTerrainData || !rows) {
+    if (!sceneName || !file || !subdivisionLevel || !description || !bigTerrainData || !finalBigTerrainData || !rows) {
       alert("Please fill out all fields and select a file to upload!");
       return;
     }
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('internal_values', rows.map(row => `${row.start},${row.end}`).join('|'))
-    formData.append('colors', rows.map(row => hexToRGBFloat(row.color)).join('|'))
+    formData.append('name', sceneName);
+    formData.append('internal_values', rows.map(row => `${row.start},${row.end}`).join('|'));
+    formData.append('colors', rows.map(row => hexToRGBFloat(row.color)).join('|'));
+    // console.log(bigTerrainData);
     formData.append("big_terrain_data",`{
       "dim_x_y_z": ${bigTerrainData.dim_x_y_z},
       "block_width": ${bigTerrainData.block_width},
       "points_per_dimention": ${bigTerrainData.points_per_dimension},
       "max_spheres": ${bigTerrainData.max_spheres}
-    }`)
+    }`);
     formData.append("final_big_terrain_data", `{
       "dim_x_y_z": ${finalBigTerrainData.dim_x_y_z},
       "block_width": ${finalBigTerrainData.block_width},
       "points_per_dimention": ${finalBigTerrainData.points_per_dimension},
       "max_spheres": ${finalBigTerrainData.max_spheres}
-      }`)
+      }`);
     formData.append("subdivision_level", subdivisionLevel);
     formData.append("description", description);
     
@@ -77,10 +81,8 @@ function FileUploader() {
       }
   };
 
-  const handleBigTerrainDataChange = (field, value) => {
-    const updated = [...bigTerrainData];
-    updated[field] = value;
-    setBigTerrainData(updated);
+  const handleBigTerrainDataChange = (fieldName, value) => {
+    setBigTerrainData(values => ({...values, [fieldName]: value}))
   };
 
   const handleFinalBigTerrainDataChange = (field, value) => {
@@ -104,6 +106,7 @@ function FileUploader() {
 
   return (
     <div>
+      <StringInputComponent headValue={"Scene name"} value={sceneName} setValue={setSceneName} />
       <InternalValuesComponent rows={rows} handleInputChange={handleInputChange} addRow={addRow} removeRow={removeRow}/>
       <TerrainDataComponent data={bigTerrainData} headline={'Big Terrain Data'} handleChange={handleBigTerrainDataChange}/>
       <TerrainDataComponent data={finalBigTerrainData} headline={'Final Big Terrain Data'} handleChange={handleFinalBigTerrainDataChange}/>
