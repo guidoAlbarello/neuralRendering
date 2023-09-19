@@ -85,10 +85,8 @@ function FileUploader() {
     setBigTerrainData(values => ({...values, [fieldName]: value}))
   };
 
-  const handleFinalBigTerrainDataChange = (field, value) => {
-    const updated = [...finalBigTerrainData];
-    updated[field] = value;
-    setFinalBigTerrainData(updated);
+  const handleFinalBigTerrainDataChange = (fieldName, value) => {
+    setFinalBigTerrainData(values => ({...values, [fieldName]: value}))
   };
 
   const handleDescriptionChange = (event) => {

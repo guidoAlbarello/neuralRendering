@@ -33,6 +33,10 @@ class NewSceneFromFile(BaseModel):
     subdivision_level: int
 
     def __init__(self, name: str, description: Optional[str], internal_values: str, colors: str, big_terrain_data: str = None, final_big_terrain_data: str = None, subdivision_level: int = 1):
+        print(name, description, internal_values, colors)
+        print(type(big_terrain_data))
+        print(big_terrain_data)
+        print(final_big_terrain_data)
         super().__init__(
             name = name,
             description = description,

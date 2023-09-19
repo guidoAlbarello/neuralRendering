@@ -38,7 +38,7 @@ ${SDFS_COLORS}
 // We need to use the same array name as struct to be compliant with three.js framework. Otherwise we can't pass array of structures.
 uniform Node node[AMOUNT_OF_NODES_IN_TREE];
 uniform LeafData leafData[AMOUNT_OF_LEAVES_IN_TREE];
-uniform vec4 spheres[TOTAL_SPHERES];
+uniform sampler2D spheres;
 
 // Uniforms to enable and disable sdfs on the fly.
 ${SDF_ENABLEMENT}
@@ -227,10 +227,8 @@ ${CALCULATE_SDF_FOR_BLOCK_FUNCTION}
             }
 
             model = opUnion(treeWireframe, model);
+            color = model == treeWireframe ? vec3(0.7, 0.7, 0.7) : color;
         }
-
-
-        color = model == treeWireframe ? vec3(0.7, 0.7, 0.7) : color;
 
         return model;
     }
