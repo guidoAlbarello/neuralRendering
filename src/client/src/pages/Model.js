@@ -204,18 +204,17 @@ function Terrain(props) {
 const Model = () => {
 	const [loading, setLoading] = useState(true);
 	const [materialProps, setMaterialProps] = useState(undefined)
-	const [terrainOptions, setTerrainOptions] = useState(undefined)
+	const [terrainOptions, setTerrainOptions] = useState({})
 	const params = useParams();
 
 	useEffect(() => {
-		
 		axios.get("http://localhost:8000/scenes/"+params.modelId)
 			.then(res => {
-				// console.log(res)
+				
 				const data = new Float32Array(res.data.processed_data.SPHERES_DATA);
 				let texture = new THREE.DataTexture(data, data.length/4.0, 1, THREE.RGBAFormat, THREE.FloatType);
 				texture.needsUpdate = true;
-				// console.log(res.data.processed_data.FRAGMENT_SHADER)
+
 				setMaterialProps({
 					uniforms: {
 						iTime: { value: 0 },
@@ -246,41 +245,17 @@ const Model = () => {
 					options[layer] = true;
 				}
 				setTerrainOptions(options);
-
 				setLoading(false);
 			})
 			.catch(err => console.error(err));
-	});
+	}, [params.modelId]);
 
-	/*const options = useMemo(() => {
-					let options = {enableSDF1: true}
-					return options
-				}, [])*/
-	/*let options = {}
-	if (terrainOptions == undefined) {
-		for (let layer in terrainOptions) {
-			options[layer] = true;
-		}
-	}*/
-	const options = useMemo(() => {
-		return {
-			enableSDF1: false,
-			enableSDF2: true,
-			enableSDF3: true,
-			enableSDF4: true,
-		}
-	}, [])
-	 // TODO: ver como usar el SDF_LAYER estando fuera del llamado y que ya este definido.
-	// setTerrainOptions(options)
-	// options --> null y setearlo despu
-	// si options es undefined ponerlo como {}
-
-	const terrainControls = useControls('Terrain', options);
+	let terrainControls = useControls('Terrain', terrainOptions, [terrainOptions]);
 
 	if (loading) {
 		return <div>Loading...</div>;
 	}
-
+	
 	return (
 		<Canvas style={{ height: "768px", width: "1360px" }}>
 			<Terrain controls={terrainControls} position={[0, 0, 0]} material={materialProps} />
