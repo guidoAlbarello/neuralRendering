@@ -76,7 +76,7 @@ const Models = () => {
               </li>
             ))
             }
-            <button type="button"> Upload new model </button>
+            <button type="button" onClick={(e) => {navigate('/upload')}}> Upload new model </button>
           </ul>
         </div>
         <div className='item-main'>

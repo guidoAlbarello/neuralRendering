@@ -7,7 +7,7 @@ function StringInput ({headValue, value, setValue}) {
             <h5>{headValue}</h5>
             <input 
             type="string" 
-            placeholder="Enter String" 
+            placeholder="Enter string" 
             value={value} 
             onChange={(e) => setValue(e.target.value)}
             />

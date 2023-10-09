@@ -5,6 +5,7 @@ import TerrainDataComponent from './terrainDataComponent'
 import InternalValuesComponent from './internalValuesComponent';
 import SubdivisionLevel from './subdivisionLevelComponent';
 import StringInputComponent from './stringInputComponent';
+import { useNavigate } from "react-router-dom";
 
 function FileUploader() {
   const [sceneName, setSceneName] = useState('');
@@ -12,15 +13,15 @@ function FileUploader() {
   const [subdivisionLevel, setSubdivisionLevel] = useState('');
   const [description, setDescription] = useState('');
   const [rows, setRows] = useState([{ start: '', end: '', color: '#000000' }]);
-  const [bigTerrainData, setBigTerrainData] = useState([{dim_x_y_z: '', block_width: '', points_per_dimension: '', max_spheres: ''}]);
-  const [finalBigTerrainData, setFinalBigTerrainData] = useState([{dim_x_y_z: '', block_width: '', points_per_dimension: '', max_spheres: ''}]);
+  const [finalBigTerrainData, setFinalBigTerrainData] = useState([{dim_x_y_z: '', points_per_dimension: '', max_spheres: ''}]);
+  const navigate = useNavigate();
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
   const handleUpload = async () => {
-    if (!sceneName || !file || !subdivisionLevel || !description || !bigTerrainData || !finalBigTerrainData || !rows) {
+    if (!sceneName || !file || !subdivisionLevel || !description || !finalBigTerrainData || !rows) {
       alert("Please fill out all fields and select a file to upload!");
       return;
     }
@@ -32,14 +33,14 @@ function FileUploader() {
     formData.append('colors', rows.map(row => hexToRGBFloat(row.color)).join('|'));
     // console.log(bigTerrainData);
     formData.append("big_terrain_data",`{
-      "dim_x_y_z": ${bigTerrainData.dim_x_y_z},
-      "block_width": ${bigTerrainData.block_width},
-      "points_per_dimention": ${bigTerrainData.points_per_dimension},
-      "max_spheres": ${bigTerrainData.max_spheres}
+      "dim_x_y_z": ${finalBigTerrainData.dim_x_y_z},
+      "block_width": ${finalBigTerrainData.points_per_dimension},
+      "points_per_dimention": ${finalBigTerrainData.points_per_dimension},
+      "max_spheres": "10"
     }`);
     formData.append("final_big_terrain_data", `{
       "dim_x_y_z": ${finalBigTerrainData.dim_x_y_z},
-      "block_width": ${finalBigTerrainData.block_width},
+      "block_width": ${finalBigTerrainData.points_per_dimension},
       "points_per_dimention": ${finalBigTerrainData.points_per_dimension},
       "max_spheres": ${finalBigTerrainData.max_spheres}
       }`);
@@ -54,6 +55,7 @@ function FileUploader() {
 
       if (response.ok) {
         alert('Data uploaded successfully');
+        navigate('/models');
       } else {
         alert('Failed to upload data');
       }
@@ -81,10 +83,6 @@ function FileUploader() {
       }
   };
 
-  const handleBigTerrainDataChange = (fieldName, value) => {
-    setBigTerrainData(values => ({...values, [fieldName]: value}))
-  };
-
   const handleFinalBigTerrainDataChange = (fieldName, value) => {
     setFinalBigTerrainData(values => ({...values, [fieldName]: value}))
   };
@@ -106,12 +104,11 @@ function FileUploader() {
     <div>
       <StringInputComponent headValue={"Scene name"} value={sceneName} setValue={setSceneName} />
       <InternalValuesComponent rows={rows} handleInputChange={handleInputChange} addRow={addRow} removeRow={removeRow}/>
-      <TerrainDataComponent data={bigTerrainData} headline={'Big Terrain Data'} handleChange={handleBigTerrainDataChange}/>
       <TerrainDataComponent data={finalBigTerrainData} headline={'Final Big Terrain Data'} handleChange={handleFinalBigTerrainDataChange}/>
       <SubdivisionLevel value={subdivisionLevel} setValue={setSubdivisionLevel} />
-      <TextAreaComponent text={description} label="Description" handleTextChange={handleDescriptionChange} />
+      <TextAreaComponent text={description} headValue={"Description"} handleTextChange={handleDescriptionChange} />
       <div>
-            <label>Add file</label>
+            <h5>Add file</h5>
             <input type="file" onChange={handleFileChange} />
         </div>
       <div className='form-button'>

@@ -3,7 +3,7 @@
     align-items: center; /* Vertically centers the label and textarea */
     margin-top: 1rem;
     margin-bottom: 1rem;
-    padding-left: 20px; /* Provides some spacing from the left side of the screen */
+    padding-left: 0px; /* Provides some spacing from the left side of the screen */
 }
 
 label {

@@ -7,7 +7,7 @@ function SubdivisionLevel ({value, setValue}) {
             <h5>Subdivision level</h5>
             <input 
             type="number" 
-            placeholder="Enter Number" 
+            placeholder="Enter a number" 
             value={value} 
             onChange={(e) => setValue(e.target.value)} 
             min={0}

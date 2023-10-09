@@ -10,7 +10,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Model from "./pages/Model";
 import Models from "./pages/Models";
-import Docs from "./pages/Docs";
 import Explorer from "./pages/Explorer";
 import NoPage from "./pages/NoPage";
 import { createRoot } from 'react-dom/client'
@@ -25,7 +24,6 @@ root.render(<React.StrictMode>
                     <Route index element={<Home />} />
                     <Route path="models" element={<Models />} />
                     <Route path="models/:modelId" element={<Model />}/>
-                    <Route path="docs" element={<Docs />} />
                     <Route path="explorer" element={<Explorer />} />
                     <Route path="upload" element={<Uploader />} />
                     <Route path="*" element={<NoPage />} />

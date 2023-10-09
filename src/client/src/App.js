@@ -14,9 +14,6 @@ function App() {
             <a href="/models">Models</a>
           </li>
           <li>
-            <a href="/docs">Docs</a>
-          </li>
-          <li>
             <a href="/upload">Upload</a>
           </li>
       </ul>
