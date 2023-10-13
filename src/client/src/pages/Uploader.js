@@ -5,7 +5,7 @@ import './Uploader.css';
 const Uploader = () => {
     return (
         <div className="form-container">
-            <h1>Upload new model</h1>
+            <h1>Cargar un nuevo modelo</h1>
             <FileUploader />
         </div>
     );

@@ -8,13 +8,13 @@ function App() {
     <nav>
       <ul className='navbar'>
           <li>
-            <a aria-current="page" href="/">Terrain Processor</a>
+            <a aria-current="page" href="/">Inicio</a>
           </li>
           <li>
-            <a href="/models">Models</a>
+            <a href="/models">Escenas</a>
           </li>
           <li>
-            <a href="/upload">Upload</a>
+            <a href="/upload">Cargar un modelo</a>
           </li>
       </ul>
     </nav>

@@ -54,14 +54,14 @@ function FileUploader() {
       });
 
       if (response.ok) {
-        alert('Data uploaded successfully');
+        alert('El modelo se cargó de forma correcta!');
         navigate('/models');
       } else {
-        alert('Failed to upload data');
+        alert('Falló la carga del modelo');
       }
     } catch (error) {
-      console.error("There was an error uploading the data:", error);
-      alert('Error uploading data');
+      console.error("Hubo un error mientras se estaba cargando el modelo:", error);
+      alert('Hubo un error mientra se estaba cargando el modelo');
     }
   };
 
@@ -102,17 +102,17 @@ function FileUploader() {
 
   return (
     <div>
-      <StringInputComponent headValue={"Scene name"} value={sceneName} setValue={setSceneName} />
+      <StringInputComponent headValue={"Nombre de la escena"} placeholderInput={"Nombre"} value={sceneName} setValue={setSceneName} />
       <InternalValuesComponent rows={rows} handleInputChange={handleInputChange} addRow={addRow} removeRow={removeRow}/>
-      <TerrainDataComponent data={finalBigTerrainData} headline={'Final Big Terrain Data'} handleChange={handleFinalBigTerrainDataChange}/>
+      <TerrainDataComponent data={finalBigTerrainData} headline={'Datos de contrucción de la escena'} handleChange={handleFinalBigTerrainDataChange}/>
       <SubdivisionLevel value={subdivisionLevel} setValue={setSubdivisionLevel} />
-      <TextAreaComponent text={description} headValue={"Description"} handleTextChange={handleDescriptionChange} />
+      <TextAreaComponent text={description} headValue={"Descripción"} handleTextChange={handleDescriptionChange} />
       <div>
-            <h5>Add file</h5>
+            <h5>Cargar archivo</h5>
             <input type="file" onChange={handleFileChange} />
         </div>
       <div className='form-button'>
-        <button onClick={handleUpload}>Upload model</button>
+        <button onClick={handleUpload}>Cargar modelo</button>
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ function TextAreaComponent({ text, headValue, handleTextChange }) { // props des
                     onChange={handleTextChange} 
                     rows="10" 
                     cols="50" 
-                    placeholder="Type your description here..."
+                    placeholder="Escriba su descripción aquí..."
                 ></textarea>
             </div>
         </div>

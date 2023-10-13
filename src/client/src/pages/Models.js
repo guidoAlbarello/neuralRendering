@@ -48,17 +48,17 @@ const Models = () => {
     <>
       <div>
         <p>
-          <b>Model: </b> {model.name}
+          <b>Modelo: </b> {model.name}
         </p>
         <p>
-            <b>Description:</b>
+            <b>Descripción:</b>
         </p>
         <p>
             <i>{model.description}</i>
         </p>
       </div>
       <button type="button" onClick={(e) => {someEventHandler(model.id)}}>
-        Explore
+        Explorar la escena
       </button>
     </>);
   };
@@ -76,7 +76,7 @@ const Models = () => {
               </li>
             ))
             }
-            <button type="button" onClick={(e) => {navigate('/upload')}}> Upload new model </button>
+            <button type="button" onClick={(e) => {navigate('/upload')}}> Cargar un modelo </button>
           </ul>
         </div>
         <div className='item-main'>

@@ -1,13 +1,13 @@
 import React from "react";
 
-function StringInput ({headValue, value, setValue}) {
+function StringInput ({headValue, placeholderInput, value, setValue}) {
 
     return (
         <div>
             <h5>{headValue}</h5>
             <input 
             type="string" 
-            placeholder="Enter string" 
+            placeholder={placeholderInput}
             value={value} 
             onChange={(e) => setValue(e.target.value)}
             />

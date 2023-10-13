@@ -3,12 +3,12 @@ import React from "react";
 function InternalValuesComponent({rows, handleInputChange, addRow, removeRow}) {
     return (
         <div>
-        <h5>Internal Values</h5>
+        <h5>Intervalos de densidades que conforman un material</h5>
         {rows.map((row, index) => (
             <div key={index}>
                 <input className="form-input"
                     type="number"
-                    placeholder="Start"
+                    placeholder="Comienza en..."
                     value={row.start}
                     onChange={(e) => handleInputChange(index, 'start', e.target.value)}
                     step="0.00001"
@@ -16,7 +16,7 @@ function InternalValuesComponent({rows, handleInputChange, addRow, removeRow}) {
                 />
                 <input className="form-input"
                     type="number"
-                    placeholder="End"
+                    placeholder="Termina en..."
                     value={row.end}
                     onChange={(e) => handleInputChange(index, 'end', e.target.value)}
                     step="0.00001"
@@ -29,8 +29,8 @@ function InternalValuesComponent({rows, handleInputChange, addRow, removeRow}) {
                 />
             </div>
         ))}
-        <button onClick={addRow}>Add Row</button>
-        <button onClick={removeRow}>Remove Row</button>
+        <button onClick={addRow}>Agregar otro material</button>
+        <button onClick={removeRow}>Eliminar el último material</button>
       </div>
     );
 }

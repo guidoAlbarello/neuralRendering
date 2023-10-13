@@ -5,10 +5,10 @@ function TerrainDataComponent({ data, headline, handleChange }) { // props destr
         <div>
             <h5>{headline}</h5>
             <div>
-            <label>X Y Z Cube dimensions:</label>
+            <label>Dimensiones de X Y Z del cubo:</label>
             <input className='form-input'
                 type='number'
-                placeholder='Enter a number'
+                placeholder='Ingrese un numero'
                 value={data.dim_x_y_z}
                 onChange={(e) => handleChange('dim_x_y_z', e.target.value)}
                 min={0}
@@ -17,10 +17,10 @@ function TerrainDataComponent({ data, headline, handleChange }) { // props destr
             </div>
 
             <div>
-            <label>Points per dimension:</label>
+            <label>Cantidad de puntos por dimensión:</label>
             <input className='form-input'
                 type='number'
-                placeholder='Enter a number'
+                placeholder='Ingrese un numero'
                 value={data.points_per_dimension}
                 onChange={(e) => handleChange('points_per_dimension', e.target.value)}
                 min={0}
@@ -29,10 +29,10 @@ function TerrainDataComponent({ data, headline, handleChange }) { // props destr
             </div>
 
             <div>
-            <label>Maximum number of spheres to build per octanct:</label>
+            <label>Máximo número de esferas que se permite construir por octante:</label>
             <input className='form-input'
                 type='number'
-                placeholder='Enter a number'
+                placeholder='Ingrese un numero'
                 value={data.max_spheres}
                 onChange={(e) => handleChange('max_spheres', e.target.value)}
                 min={0}
