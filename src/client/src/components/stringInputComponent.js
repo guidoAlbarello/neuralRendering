@@ -4,7 +4,7 @@ function StringInput ({headValue, placeholderInput, value, setValue}) {
 
     return (
         <div>
-            <h5>{headValue}</h5>
+            <h5 style={{fontSize:"15px"}}>{headValue}</h5>
             <input 
             type="string" 
             placeholder={placeholderInput}

@@ -4,7 +4,7 @@ function SubdivisionLevel ({value, setValue}) {
 
     return (
         <div>
-            <h5>Cantidad de subdivisiones que se quiere hacer al cubo</h5>
+            <h5 style={{fontSize:"15px"}}>Parametro de optimización</h5>            
             <input 
             type="number" 
             placeholder="Ingrese un número" 
@@ -12,9 +12,10 @@ function SubdivisionLevel ({value, setValue}) {
             onChange={(e) => setValue(e.target.value)} 
             min={0}
             step={1}
-            /> <t style={{fontSize:"10px"}}>
-            *El número ingresado debe ser potencia de 2*
-            </t>
+            />
+            <div>
+            <t style={{fontSize:"11px"}}><i>Este parámetro define la cantidad de divisiones que tendrá el árbol BVH que se utiliza como estructura de aceleración al momento de graficar. Cuanto mayor es el numero, mayor cantidad de esferas permite tener</i></t>
+            </div>
         </div>
     )
 }

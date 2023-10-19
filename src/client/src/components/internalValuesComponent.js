@@ -3,7 +3,7 @@ import React from "react";
 function InternalValuesComponent({rows, handleInputChange, addRow, removeRow}) {
     return (
         <div>
-        <h5>Intervalos de densidades que conforman un material</h5>
+        <h5 style={{fontSize:"15px"}}>Intervalos de densidades que conforman un material</h5>
         {rows.map((row, index) => (
             <div key={index}>
                 <input className="form-input"

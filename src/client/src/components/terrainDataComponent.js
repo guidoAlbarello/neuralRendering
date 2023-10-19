@@ -3,21 +3,10 @@ import React from 'react';
 function TerrainDataComponent({ data, headline, handleChange }) { // props destructuring
     return (
         <div>
-            <h5>{headline}</h5>
-            <div>
-            <label>Dimensiones de X Y Z del cubo:</label>
-            <input className='form-input'
-                type='number'
-                placeholder='Ingrese un numero'
-                value={data.dim_x_y_z}
-                onChange={(e) => handleChange('dim_x_y_z', e.target.value)}
-                min={0}
-                step={1}
-            />
-            </div>
+            <h5 style={{fontSize:"15px"}}>{headline}</h5>
 
             <div>
-            <label>Cantidad de puntos por dimensión:</label>
+            <label style={{fontSize:"14px"}}>Cantidad de puntos por dimensión:</label>
             <input className='form-input'
                 type='number'
                 placeholder='Ingrese un numero'
@@ -26,10 +15,15 @@ function TerrainDataComponent({ data, headline, handleChange }) { // props destr
                 min={0}
                 step={1}
             />
+            <br></br>
+            <t style={{fontSize:"11px"}}>
+            <i>Cada eje se dividirá en esta cantidad de partes. 
+            Por ejemplo tenemos un cubo con cantidad de puntos por dimension 4, por lo que si calculamos la cantidad toal de puntos es 4x4x4=64</i>
+            </t>
             </div>
 
             <div>
-            <label>Máximo número de esferas que se permite construir por octante:</label>
+            <label style={{fontSize:"14px"}}>Máximo número de esferas que se permite construir por material:</label>
             <input className='form-input'
                 type='number'
                 placeholder='Ingrese un numero'

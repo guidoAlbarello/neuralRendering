@@ -6,7 +6,7 @@ function TextAreaComponent({ text, headValue, handleTextChange }) { // props des
         <div className="textarea-container">
             <div>
                 <div>
-                <h5>{headValue}</h5>
+                <h5 style={{fontSize:"15px"}}>{headValue}</h5>
                 </div>
                 <textarea 
                     id="customTextarea"

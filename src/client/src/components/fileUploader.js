@@ -13,7 +13,7 @@ function FileUploader() {
   const [subdivisionLevel, setSubdivisionLevel] = useState('');
   const [description, setDescription] = useState('');
   const [rows, setRows] = useState([{ start: '', end: '', color: '#000000' }]);
-  const [finalBigTerrainData, setFinalBigTerrainData] = useState([{dim_x_y_z: '', points_per_dimension: '', max_spheres: ''}]);
+  const [finalBigTerrainData, setFinalBigTerrainData] = useState([{dim_x_y_z: '1', points_per_dimension: '', max_spheres: ''}]);
   const navigate = useNavigate();
 
   const handleFileChange = (e) => {
@@ -33,13 +33,13 @@ function FileUploader() {
     formData.append('colors', rows.map(row => hexToRGBFloat(row.color)).join('|'));
     // console.log(bigTerrainData);
     formData.append("big_terrain_data",`{
-      "dim_x_y_z": ${finalBigTerrainData.dim_x_y_z},
+      "dim_x_y_z": "1",
       "block_width": ${finalBigTerrainData.points_per_dimension},
       "points_per_dimention": ${finalBigTerrainData.points_per_dimension},
       "max_spheres": "10"
     }`);
     formData.append("final_big_terrain_data", `{
-      "dim_x_y_z": ${finalBigTerrainData.dim_x_y_z},
+      "dim_x_y_z": "1",
       "block_width": ${finalBigTerrainData.points_per_dimension},
       "points_per_dimention": ${finalBigTerrainData.points_per_dimension},
       "max_spheres": ${finalBigTerrainData.max_spheres}
@@ -104,11 +104,11 @@ function FileUploader() {
     <div>
       <StringInputComponent headValue={"Nombre de la escena"} placeholderInput={"Nombre"} value={sceneName} setValue={setSceneName} />
       <InternalValuesComponent rows={rows} handleInputChange={handleInputChange} addRow={addRow} removeRow={removeRow}/>
-      <TerrainDataComponent data={finalBigTerrainData} headline={'Datos de contrucción de la escena'} handleChange={handleFinalBigTerrainDataChange}/>
+      <TerrainDataComponent data={finalBigTerrainData} headline={'Datos de construcción de la escena (pensada como un cubo)'} handleChange={handleFinalBigTerrainDataChange}/>
       <SubdivisionLevel value={subdivisionLevel} setValue={setSubdivisionLevel} />
       <TextAreaComponent text={description} headValue={"Descripción"} handleTextChange={handleDescriptionChange} />
       <div>
-            <h5>Cargar archivo</h5>
+            <h5 style={{fontSize:"15px"}}>Cargar archivo</h5>
             <input type="file" onChange={handleFileChange} />
         </div>
       <div className='form-button'>
