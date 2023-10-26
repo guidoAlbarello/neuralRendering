@@ -1,0 +1,8 @@
+/* src/ResponsiveParagraph.css */
+.padded-container {
+    padding-left: 50px; /* Adjust the left padding as you see fit */
+}
+
+.responsive-paragraph {
+    font-size: 16px; /* Set a base font size */
+}
